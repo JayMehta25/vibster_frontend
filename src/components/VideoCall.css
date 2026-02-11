@@ -1,0 +1,186 @@
+/* VideoCall.css */
+.video-call-container {
+  padding: 20px;
+  max-width: 100%;
+  min-height: 100vh;
+  background-color: #1a1a2e;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-call-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.video-call-title {
+  margin: 0;
+  color: #e94560;
+  font-size: 24px;
+}
+
+.video-call-roomcode {
+  color: #16c79a;
+}
+
+.video-call-subtitle {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.video-call-join-button {
+  background-color: #e94560;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(233, 69, 96, 0.5);
+}
+
+.video-call-join-button:hover {
+  background-color: #d13354;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(233, 69, 96, 0.6);
+}
+
+.video-call-join-button:active {
+  transform: translateY(1px);
+}
+
+.video-call-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.video-call-participants {
+  font-size: 14px;
+  background-color: #16c79a;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.video-call-back-button {
+  background-color: #4a69bd;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.video-call-back-button:hover {
+  background-color: #3c5999;
+  transform: translateY(-1px);
+}
+
+.video-call-welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.video-call-welcome-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.video-call-welcome-text {
+  text-align: center;
+  max-width: 400px;
+  color: #ccc;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  flex: 1;
+}
+
+.video-container {
+  position: relative;
+  aspect-ratio: 16/9;
+  background-color: #0f3460;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  background-color: #0f3460;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.video-avatar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0f3460;
+  border-radius: 12px;
+  color: white;
+  font-size: 40px;
+}
+
+.video-label {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(0,0,0,0.6);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: white;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .video-call-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .video-call-container {
+    padding: 10px;
+  }
+  
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+}

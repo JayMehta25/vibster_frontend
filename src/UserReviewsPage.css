@@ -1,0 +1,55 @@
+.user-reviews-page-container {
+    background-color: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.user-reviews-page-title {
+    font-family: 'Audiowide', cursive;
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 0 10px #00d8ff, 0 0 20px #00d8ff;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.reviews-back-button {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: transparent;
+    color: #00d8ff;
+    border: 2px solid #00d8ff;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 216, 255, 0.7);
+    z-index: 100;
+}
+
+.reviews-back-button:hover {
+    background-color: #00d8ff;
+    color: #000;
+    box-shadow: 0 0 15px #00d8ff, 0 0 25px #00d8ff;
+}
+
+@media (max-width: 768px) {
+    .user-reviews-page-title {
+        font-size: 2rem;
+    }
+    .reviews-back-button {
+        top: 15px;
+        left: 15px;
+        padding: 8px 16px;
+    }
+} 

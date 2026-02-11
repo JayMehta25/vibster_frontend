@@ -1,0 +1,48 @@
+/* Fix scrolling issues in Home.css */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background: #000;
+  overflow-x: hidden;
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.home-container {
+  position: relative;
+  min-height: 100vh; /* Use min-height instead of fixed height */
+  width: 100%;
+  overflow-y: auto; /* Allow scrolling */
+  overflow-x: hidden;
+}
+
+/* If you have a fullscreen background element, make sure it doesn't block scrolling */
+.background {
+  position: fixed; /* Keep this fixed */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* Allows clicks to pass through */
+}
+
+/* Content containers should allow scrolling */
+.content-section {
+  position: relative; /* Not fixed */
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh; /* Use min-height to allow expansion */
+  overflow-y: visible; /* Allow content to expand */
+}
+
+/* For any fixed position elements that might block scrolling */
+.fixed-element {
+  position: fixed;
+  pointer-events: none; /* Allows scrolling through the element */
+}
+.fixed-element * {
+  pointer-events: auto; /* Re-enable pointer events for children */
+} 

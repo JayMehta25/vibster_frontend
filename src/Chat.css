@@ -1,0 +1,201 @@
+/* Chat.css */
+
+/* Outer container that fills the screen */
+.chat-page-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  /* The Hyperspeed canvas is placed behind everything
+     because it uses #lights { position: absolute; z-index: -1; } */
+  
+  /* JOIN SCREEN container */
+  .chat-join-container {
+    position: relative;
+    z-index: 1; /* Ensures it's above the background canvas */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+    color: #fff; /* So text is visible on a dark background */
+    padding: 20px;
+  }
+  
+  .chat-join-form {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  .chat-join-form h1 {
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  /* Override Bootstrap input for the join screen */
+  .chat-join-form .form-control {
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+  
+  /* Buttons */
+  .chat-join-form .btn {
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+  }
+  
+  .chat-join-form .btn-primary {
+    background: #3498db;
+  }
+  
+  .chat-join-form .btn-primary:hover {
+    background: #2980b9;
+  }
+  
+  .chat-join-form .btn-secondary {
+    background: #95a5a6;
+  }
+  
+  .chat-join-form .btn-secondary:hover {
+    background: #7f8c8d;
+  }
+  
+  /* CHAT ROOM container */
+  .chat-room-container {
+    position: relative;
+    z-index: 1; /* Also above the background canvas */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: rgba(145, 255, 172, 0.9); /* Slight overlay if desired */
+  }
+  
+  /* Chat header */
+  .chat-header {
+    background: #fff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+  }
+  
+  /* Chat messages area */
+  .chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #eaeaea;
+  }
+  
+  /* Message styling */
+  .chat-message {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .chat-message.user {
+    align-items: flex-end;
+  }
+  
+  .chat-message.other {
+    align-items: flex-start;
+  }
+  
+  .chat-message .message-content {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  
+  .chat-message.user .message-content {
+    background: #d1e7dd;
+  }
+  
+  .chat-message .timestamp {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 5px;
+  }
+  
+  /* Chat footer (input bar) */
+  .chat-footer {
+    background: #fff;
+    padding: 10px 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+  }
+  
+  .chat-footer input[type="text"] {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 10px 15px;
+    outline: none;
+    transition: border-color 0.3s ease;
+    margin-right: 10px;
+  }
+  
+  .chat-footer input[type="text"]:focus {
+    border-color: #3498db;
+  }
+  
+  .chat-footer button {
+    background: #3498db;
+    border: none;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .chat-footer button:hover {
+    background: #2980b9;
+  }
+  
+  /* Attachment Preview */
+  .attachment-preview {
+    position: fixed;
+    bottom: 70px;
+    left: 10px;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    z-index: 1000;
+  }
+  
+  .attachment-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 4px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .chat-message .message-content {
+      max-width: 90%;
+    }
+  }
+  

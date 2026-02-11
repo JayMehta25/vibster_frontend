@@ -1,0 +1,87 @@
+.stage-light-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.6) 100%);
+}
+
+.stage-light-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.stage-light-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 2;
+}
+
+/* Theatrical overlay effects */
+.stage-light-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 107, 53, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 215, 0, 0.1) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+}
+
+/* Performance optimizations */
+.stage-light-container {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stage-light-container {
+    z-index: 1;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .stage-light-container {
+    opacity: 0.8;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .stage-light-container canvas {
+    animation: none !important;
+  }
+} 

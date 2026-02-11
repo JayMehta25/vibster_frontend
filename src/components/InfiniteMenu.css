@@ -1,0 +1,166 @@
+/* Note: this CSS is only an example, you can overlay whatever you want using the activeItem logic */
+
+#infinite-grid-menu-canvas {
+  cursor: grab;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  outline: none;
+}
+
+#infinite-grid-menu-canvas:active {
+  cursor: grabbing;
+}
+
+.review-display {
+  position: absolute;
+  bottom: 2em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  padding: 1.5rem 2rem;
+  border-radius: 15px;
+  width: 80%;
+  max-width: 600px;
+  text-align: center;
+  border: 1px solid rgba(0, 183, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 183, 255, 0.1);
+}
+
+.review-display.active {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition: all 0.5s ease;
+}
+
+.review-display.inactive {
+  opacity: 0;
+  transform: translate(-50%, 100px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.review-name {
+    font-weight: 700;
+    color: #00b7ff;
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.star-rating {
+    font-size: 1.5rem;
+    color: #fdcb6e;
+    text-shadow: 0 0 5px #fdcb6e, 0 0 10px #fdcb6e; /* yellow glowing */
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.review-comment {
+    color: #ccc;
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.action-button {
+  position: absolute;
+  left: 50%;
+  z-index: 10;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  background: #5227FF;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 5px solid #000;
+}
+
+.face-title {
+  user-select: none;
+  position: absolute;
+  font-weight: 900;
+  font-size: 4rem;
+  top: 45%;
+  right: 1.5em;
+  transform: translate(100%, -50%);
+  text-align: right;
+}
+
+.action-button-icon {
+  user-select: none;
+  position: relative;
+  color: #fff;
+  top: 2px;
+  font-size: 26px;
+}
+
+.face-title.active {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+  transition: 0.5s ease;
+}
+
+.face-title.inactive {
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(100%, -50%);
+  transition: 0.1s ease;
+}
+
+.face-description {
+  user-select: none;
+  position: absolute;
+  max-width: 25ch;
+  top: 58%;
+  font-size: 1.5rem;
+  right: 1.5em;
+  transform: translate(100%, -50%);
+  text-align: right;
+}
+
+.face-description.active {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+  transition: 0.5s ease;
+  transition-delay: 0.1s;
+}
+
+.face-description.inactive {
+  pointer-events: none;
+  transform: translate(100%, -50%);
+  opacity: 0;
+  transition: 0.1s ease;
+}
+
+.action-button {
+  position: absolute;
+  left: 50%;
+}
+
+.action-button.active {
+  bottom: 3.8em;
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition: 0.5s ease;
+}
+
+.action-button.inactive {
+  bottom: -80px;
+  transform: translateX(-50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.1s ease;
+}
+
+@media (max-width: 1500px) {
+  .face-title, .face-description {
+    display: none;
+  }
+} 

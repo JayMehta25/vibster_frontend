@@ -1,0 +1,45 @@
+.ripple-grid-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.ripple-grid-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+}
+
+/* Performance optimizations */
+.ripple-grid-container {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ripple-grid-container {
+    z-index: 1;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ripple-grid-container {
+    opacity: 0.8;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .ripple-grid-container canvas {
+    animation: none !important;
+  }
+} 
