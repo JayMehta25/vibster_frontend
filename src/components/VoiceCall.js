@@ -199,6 +199,28 @@ function VoiceCall() {
         </button>
       </div>
 
+      {/* Room Code Banner - Shows when joined */}
+      {joined && room && (
+        <div style={styles.roomCodeBanner}>
+          <div style={styles.roomCodeContent}>
+            <span style={styles.roomCodeLabel}>Room Code:</span>
+            <span style={styles.roomCodeText}>{room.toUpperCase()}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(room);
+                alert('Room code copied to clipboard!');
+              }}
+              style={styles.copyButton}
+              title="Copy room code"
+            >
+              📋 Copy
+            </button>
+          </div>
+          <p style={styles.roomCodeHint}>Share this code with others to join the call</p>
+        </div>
+      )}
+
+
       <div style={styles.content} className="voice-call-content">
         {!joined ? (
           <div style={styles.joinSection}>
@@ -511,6 +533,56 @@ const styles = {
     maxWidth: '120px',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
+  },
+  roomCodeBanner: {
+    backgroundColor: '#1a73e8',
+    color: 'white',
+    padding: '20px',
+    borderRadius: '12px',
+    marginBottom: '20px',
+    boxShadow: '0 4px 12px rgba(26, 115, 232, 0.3)',
+    textAlign: 'center'
+  },
+  roomCodeContent: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '15px',
+    flexWrap: 'wrap',
+    marginBottom: '10px'
+  },
+  roomCodeLabel: {
+    fontSize: '16px',
+    fontWeight: '500',
+    opacity: 0.9
+  },
+  roomCodeText: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    letterSpacing: '3px',
+    fontFamily: 'monospace',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: '8px 20px',
+    borderRadius: '8px',
+    border: '2px solid rgba(255, 255, 255, 0.3)'
+  },
+  copyButton: {
+    backgroundColor: 'white',
+    color: '#1a73e8',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '14px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+  },
+  roomCodeHint: {
+    fontSize: '14px',
+    margin: 0,
+    opacity: 0.9,
+    fontStyle: 'italic'
   }
 };
 
