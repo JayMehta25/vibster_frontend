@@ -1909,9 +1909,31 @@ function ChatMain() {
             >
               <span role="img" aria-label="leave" style={{ fontSize: 22 }}>🚪</span>
             </button>
-            {/* Room Code (center) */}
+            {/* Room Code (center) - Clickable to copy */}
             <span
               className="px-2 py-2 text-truncate"
+              onClick={() => {
+                navigator.clipboard.writeText(roomCode);
+                // Visual feedback
+                const el = document.getElementById('room-code-display');
+                if (el) {
+                  el.style.background = 'rgba(0,255,0,0.3)';
+                  setTimeout(() => {
+                    el.style.background = 'rgba(0,183,235,0.18)';
+                  }, 500);
+                }
+                // Show toast notification
+                Swal.fire({
+                  toast: true,
+                  position: 'top',
+                  icon: 'success',
+                  title: 'Room code copied!',
+                  showConfirmButton: false,
+                  timer: 1500,
+                  timerProgressBar: true
+                });
+              }}
+              id="room-code-display"
               style={{
                 background: 'rgba(0,183,235,0.18)',
                 borderRadius: '18px',
@@ -1929,9 +1951,12 @@ function ChatMain() {
                 whiteSpace: 'nowrap',
                 flexShrink: 1,
                 flexGrow: 1,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
               }}
+              title="Click to copy room code"
             >
-              <span role="img" aria-label="Room" style={{ marginRight: 6 }}>#️⃣</span>
+              <span role="img" aria-label="Room" style={{ marginRight: 6 }}>📋</span>
               {roomCode}
             </span>
             {/* Menu Icon (right) */}

@@ -7,7 +7,7 @@ function VoiceCall() {
   const navigate = useNavigate();
   const { roomCode, username, fromInterestChat } = location.state || {};
 
-  const [room, setRoom] = useState(''); // Start with empty room code
+  const [room, setRoom] = useState(roomCode || ''); // Pre-fill with roomCode from navigation
   const [joined, setJoined] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState({});
   const [isMuted, setIsMuted] = useState(false);
