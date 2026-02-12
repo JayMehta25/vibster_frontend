@@ -8,7 +8,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from 'sweetalert2';
 import RotatingText from './components/RotatingText';
 import Globe from 'react-globe.gl';
-import OnlineCounter from './components/OnlineCounter';
 
 // Add at the top of the Homepage component
 const INTERESTS = [
@@ -42,30 +41,12 @@ function TypewriterTitle() {
 
 // ---------- Online Status Component ----------
 function OnlineStatus({ isOnline }) {
-  const [onlineUsers, setOnlineUsers] = useState(0);
-
-  useEffect(() => {
-    // Import socket dynamically
-    import('./socket').then(({ default: socket }) => {
-      // Listen for online user updates
-      socket.on('onlineUsersUpdate', (count) => {
-        setOnlineUsers(count);
-        console.log('Online users updated:', count);
-      });
-
-      // Cleanup on unmount
-      return () => {
-        socket.off('onlineUsersUpdate');
-      };
-    });
-  }, []);
-
   return (
     <div className="online-status" style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      padding: '6px 14px',
+      gap: '6px',
+      padding: '6px 12px',
       borderRadius: '16px',
       fontSize: '0.85rem',
       fontWeight: '600',
@@ -85,9 +66,7 @@ function OnlineStatus({ isOnline }) {
         boxShadow: `0 0 8px ${isOnline ? '#00ff00' : '#ff0000'}`,
         animation: isOnline ? 'blinkOnline 1.5s infinite' : 'blinkOffline 1.5s infinite'
       }}></div>
-      <span className="d-none d-sm-inline">
-        {onlineUsers > 0 ? `${onlineUsers.toLocaleString()} online` : (isOnline ? 'Online' : 'Offline')}
-      </span>
+      <span className="d-none d-sm-inline">{isOnline ? 'Online' : 'Offline'}</span>
     </div>
   );
 }
@@ -488,7 +467,6 @@ export default function Homepage() {
 
   return (
     <>
-      <OnlineCounter />
       {/* Global and Component Styles */}
       <style>
         {`

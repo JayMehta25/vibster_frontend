@@ -6,7 +6,6 @@ import Particles from './particlepage';
 import Swal from 'sweetalert2';
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5Qrcode } from 'html5-qrcode';
-import OnlineCounter from './components/OnlineCounter';
 
 function ChatLanding() {
   const navigate = useNavigate();
@@ -472,7 +471,6 @@ function ChatLanding() {
       overflow: 'hidden',
       background: 'black',
     }}>
-      <OnlineCounter />
       {/* Back to Home Page button */}
       <button
         className="btn btn-light position-absolute"

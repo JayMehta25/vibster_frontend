@@ -6,7 +6,6 @@ import Globe from 'react-globe.gl';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import Grainient from './Grainient';
-import OnlineCounter from './components/OnlineCounter';
 // Fallback to localhost if ngrok is down, or use the current host if browsing via ngrok
 
 
@@ -535,7 +534,6 @@ const InterestChat = () => {
 
     return (
         <>
-            <OnlineCounter />
             <div className="interest-chat-container" style={{
                 position: 'fixed',
                 top: 0,
