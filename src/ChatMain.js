@@ -96,7 +96,7 @@ const constructImageUrl = (imageUrl, filename) => {
   if (!imageUrl) return null;
   if (imageUrl.startsWith('http')) return imageUrl;
 
-  const API_URL = 'https://vibester-server.onrender.com/';
+  const API_URL = 'https://vibester-back.onrender.com/';
   if (imageUrl.startsWith('/')) {
     // Use mobile-friendly image endpoint
     return `${API_URL}/image/${filename || imageUrl.split('/').pop()}`;
@@ -113,7 +113,7 @@ const constructAudioUrl = (audioObj) => {
     return url;
   }
   // Ensure URL is absolute
-  const API_URL = 'https://vibester-server.onrender.com/';
+  const API_URL = 'https://vibester-back.onrender.com/';
   if (url.startsWith('/')) {
     url = `${API_URL}${url}`;
   }
@@ -130,7 +130,7 @@ const constructAudioUrl = (audioObj) => {
 
 const tryAlternativeAudioUrl = async (originalUrl) => {
   if (!originalUrl) return null;
-  const API_URL = 'https://vibester-server.onrender.com/';
+  const API_URL = 'https://vibester-back.onrender.com/';
   const alternatives = [];
   // Extract filename from URL
   const filename = originalUrl.split('/').pop();
@@ -438,7 +438,7 @@ const SimpleAudioPlayer = ({ src }) => {
 };
 
 function ChatMain() {
-  const API_URL = 'https://vibester-server.onrender.com/'; // backend ngrok URL
+  const API_URL = 'https://vibester-back.onrender.com/'; // backend ngrok URL
 
 
 

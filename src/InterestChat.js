@@ -10,7 +10,7 @@ import OnlineCounter from './components/OnlineCounter';
 // Fallback to localhost if ngrok is down, or use the current host if browsing via ngrok
 
 
-const BACKEND_BASE_URL = "https://vibester-server.onrender.com";
+const BACKEND_BASE_URL = "https://vibester-back.onrender.com";
 
 const InterestChat = () => {
     const location = useLocation();

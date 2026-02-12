@@ -1,7 +1,7 @@
 // socket.js
 import { io } from "socket.io-client";
 
-const API_URL = 'https://vibester-server.onrender.com'; // backend ngrok URL
+const API_URL = 'https://vibester-back.onrender.com'; // backend ngrok URL
 
 // centralized socket instance
 const socket = io(API_URL, {
