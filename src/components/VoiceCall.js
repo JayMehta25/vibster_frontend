@@ -189,7 +189,9 @@ function VoiceCall() {
       `}</style>
 
       <div style={styles.header} className="voice-call-header">
-        <h2 style={styles.title}>Group Voice Chat</h2>
+        <h2 style={styles.title}>
+          {joined && room ? `Voice Call - Room: ${room.toUpperCase()}` : 'Group Voice Chat'}
+        </h2>
         <button
           onClick={handleBack}
           style={styles.backButton}
@@ -198,28 +200,6 @@ function VoiceCall() {
           Back to Chat
         </button>
       </div>
-
-      {/* Room Code Banner - Shows when joined */}
-      {joined && room && (
-        <div style={styles.roomCodeBanner}>
-          <div style={styles.roomCodeContent}>
-            <span style={styles.roomCodeLabel}>Room Code:</span>
-            <span style={styles.roomCodeText}>{room.toUpperCase()}</span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(room);
-                alert('Room code copied to clipboard!');
-              }}
-              style={styles.copyButton}
-              title="Copy room code"
-            >
-              📋 Copy
-            </button>
-          </div>
-          <p style={styles.roomCodeHint}>Share this code with others to join the call</p>
-        </div>
-      )}
-
 
       <div style={styles.content} className="voice-call-content">
         {!joined ? (
