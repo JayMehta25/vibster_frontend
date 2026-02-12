@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from 'sweetalert2';
 import RotatingText from './components/RotatingText';
 import Globe from 'react-globe.gl';
+import OnlineCounter from './components/OnlineCounter';
 
 // Add at the top of the Homepage component
 const INTERESTS = [
@@ -116,22 +117,22 @@ function ChatBot() {
     const currentInput = input;
     setInput("");
     setIsTyping(true);
-  
+
     try {
       // const response = await fetch("https://chatroulletexbackend-production-adb8.up.railway.app/api/chatbot", {
       //   method: "POST",
       //   headers: { "Content-Type": "application/json" },
       //   body: JSON.stringify({ message: currentInput }),
       // });
-  
+
       // if (!response.ok) {
       //   throw new Error("Network response was not ok");
       // }
       // const data = await response.json();
-  
+
       // // Log the response to ensure correct data is received
       // console.log("ChatBot response:", data);
-  
+
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text: "ChatBot is thinking..." },
@@ -152,13 +153,13 @@ function ChatBot() {
       setIsTyping(false);
     }
   };
-  
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSend();
     }
   };
-  
+
 
   return (
     <>
@@ -280,7 +281,7 @@ export default function Homepage() {
         if (r && r.setPixelRatio) {
           r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         }
-      } catch {}
+      } catch { }
       globeRef.current.controls().autoRotate = true;
       globeRef.current.controls().autoRotateSpeed = 2.5;
       globeRef.current.controls().enableZoom = false; // Disable zoom
@@ -467,6 +468,7 @@ export default function Homepage() {
 
   return (
     <>
+      <OnlineCounter />
       {/* Global and Component Styles */}
       <style>
         {`
@@ -1422,7 +1424,7 @@ export default function Homepage() {
 
       <div className="layout-container">
         <div className="particles-background">
-          <Galaxy 
+          <Galaxy
             mouseRepulsion={true}
             mouseInteraction={true}
             density={0.3}
@@ -1469,8 +1471,8 @@ export default function Homepage() {
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', filter: 'brightness(1.15)' }}
             />
             {!globeReady && (
-              <div style={{position:'absolute', inset:0, display:'grid', placeItems:'center', background:'radial-gradient(ellipse at center, rgba(0,80,120,0.25), rgba(0,0,0,0))'}}>
-                <div style={{width:96, height:96, borderRadius:'50%', background:'linear-gradient(90deg, rgba(155,211,255,0.2) 25%, rgba(155,211,255,0.5) 50%, rgba(155,211,255,0.2) 75%)', animation:'globeShimmer 1.2s infinite', filter:'blur(0.2px)'}} />
+              <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'radial-gradient(ellipse at center, rgba(0,80,120,0.25), rgba(0,0,0,0))' }}>
+                <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(90deg, rgba(155,211,255,0.2) 25%, rgba(155,211,255,0.5) 50%, rgba(155,211,255,0.2) 75%)', animation: 'globeShimmer 1.2s infinite', filter: 'blur(0.2px)' }} />
                 <style>{`@keyframes globeShimmer{0%{background-position:-150px 0}100%{background-position:150px 0}}`}</style>
               </div>
             )}
@@ -1509,7 +1511,7 @@ export default function Homepage() {
             <div className="how-it-works-image-container">
               <img src="https://img.huffingtonpost.com/asset/5e7b856d240000660bcea485.jpeg?cache=o7bvEgPrzP&ops=1778_1000" alt="Friends chatting and having fun" />
             </div>
-            <motion.div 
+            <motion.div
               className="how-it-works-text-container"
               style={{ y: textCardY }}
               transition={{ type: "spring", stiffness: 40, damping: 30, mass: 1.2 }}
@@ -1529,7 +1531,7 @@ export default function Homepage() {
                 </div>
                 <div className="feature-item">
                   <svg className="feature-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                   <div className="feature-text">
                     <h4>Safe & Anonymous</h4>
@@ -1554,12 +1556,12 @@ export default function Homepage() {
         <section ref={interestChatRef} className="interest-chat-section">
           <div className="interest-chat-sticky-container">
             <div className="interest-chat-image-container">
-              <img 
-                src="https://www.upthereeverywhere.com/hs-fs/hubfs/2023_Blog/Kate_LikeMinded_Blog.jpg?width=1416&height=894&name=Kate_LikeMinded_Blog.jpg" 
-                alt="Interest based chat" 
+              <img
+                src="https://www.upthereeverywhere.com/hs-fs/hubfs/2023_Blog/Kate_LikeMinded_Blog.jpg?width=1416&height=894&name=Kate_LikeMinded_Blog.jpg"
+                alt="Interest based chat"
               />
             </div>
-            <motion.div 
+            <motion.div
               className="interest-chat-text-container"
               style={{ y: interestTextY }}
             >
@@ -1571,7 +1573,7 @@ export default function Homepage() {
             </motion.div>
           </div>
         </section>
-        
+
         {/* ---------- Footer ---------- */}
         <footer className="page-footer" style={{ padding: '10px 0', fontSize: '0.95em', background: '#101c2c', color: '#aaa', borderTop: '1px solid #222', marginTop: 32 }}>
           <div className="container-fluid">
