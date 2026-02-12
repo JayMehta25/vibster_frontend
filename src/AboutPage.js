@@ -6,7 +6,7 @@ const jayPhoto = process.env.PUBLIC_URL + '/profile.png'; // Use the profile.png
 
 // Glowing Twitter icon
 const TwitterIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 8px #1DA1F2)' }} fill="#1DA1F2" xmlns="http://www.w3.org/2000/svg"><path d="M24 4.557a9.93 9.93 0 0 1-2.828.775A4.932 4.932 0 0 0 23.337 3.1a9.864 9.864 0 0 1-3.127 1.195A4.916 4.916 0 0 0 16.616 2c-2.72 0-4.924 2.206-4.924 4.924 0 .386.044.762.127 1.124C7.728 7.89 4.1 6.13 1.671 3.149c-.423.724-.666 1.562-.666 2.475 0 1.708.87 3.216 2.188 4.099a4.904 4.904 0 0 1-2.229-.616c-.054 2.281 1.581 4.415 3.949 4.89a4.936 4.936 0 0 1-2.224.084c.627 1.956 2.444 3.377 4.6 3.417A9.867 9.867 0 0 1 0 21.543a13.94 13.94 0 0 0 7.548 2.212c9.057 0 14.009-7.513 14.009-14.009 0-.213-.005-.425-.014-.636A10.012 10.012 0 0 0 24 4.557z"/></svg>
+  <svg width="32" height="32" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 8px #1DA1F2)' }} fill="#1DA1F2" xmlns="http://www.w3.org/2000/svg"><path d="M24 4.557a9.93 9.93 0 0 1-2.828.775A4.932 4.932 0 0 0 23.337 3.1a9.864 9.864 0 0 1-3.127 1.195A4.916 4.916 0 0 0 16.616 2c-2.72 0-4.924 2.206-4.924 4.924 0 .386.044.762.127 1.124C7.728 7.89 4.1 6.13 1.671 3.149c-.423.724-.666 1.562-.666 2.475 0 1.708.87 3.216 2.188 4.099a4.904 4.904 0 0 1-2.229-.616c-.054 2.281 1.581 4.415 3.949 4.89a4.936 4.936 0 0 1-2.224.084c.627 1.956 2.444 3.377 4.6 3.417A9.867 9.867 0 0 1 0 21.543a13.94 13.94 0 0 0 7.548 2.212c9.057 0 14.009-7.513 14.009-14.009 0-.213-.005-.425-.014-.636A10.012 10.012 0 0 0 24 4.557z" /></svg>
 );
 
 // Latest Instagram logo (gradient) with glow
@@ -14,17 +14,17 @@ const InstagramIcon = () => (
   <svg width="32" height="32" viewBox="0 0 448 448" style={{ filter: 'drop-shadow(0 0 8px #fd1d1d)' }} xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id="ig-gradient" cx="30%" cy="107%" r="150%" fx="30%" fy="107%">
-        <stop offset="0%" stopColor="#fdf497"/>
-        <stop offset="45%" stopColor="#fd5949"/>
-        <stop offset="60%" stopColor="#d6249f"/>
-        <stop offset="90%" stopColor="#285AEB"/>
+        <stop offset="0%" stopColor="#fdf497" />
+        <stop offset="45%" stopColor="#fd5949" />
+        <stop offset="60%" stopColor="#d6249f" />
+        <stop offset="90%" stopColor="#285AEB" />
       </radialGradient>
     </defs>
-    <rect x="32" y="32" width="384" height="384" rx="90" fill="url(#ig-gradient)"/>
-    <circle cx="224" cy="224" r="96" fill="#fff" fillOpacity="0.7"/>
-    <circle cx="224" cy="224" r="72" fill="url(#ig-gradient)"/>
-    <circle cx="336" cy="112" r="24" fill="#fff" fillOpacity="0.7"/>
-    <circle cx="336" cy="112" r="16" fill="url(#ig-gradient)"/>
+    <rect x="32" y="32" width="384" height="384" rx="90" fill="url(#ig-gradient)" />
+    <circle cx="224" cy="224" r="96" fill="#fff" fillOpacity="0.7" />
+    <circle cx="224" cy="224" r="72" fill="url(#ig-gradient)" />
+    <circle cx="336" cy="112" r="24" fill="#fff" fillOpacity="0.7" />
+    <circle cx="336" cy="112" r="16" fill="url(#ig-gradient)" />
   </svg>
 );
 
@@ -32,11 +32,11 @@ const InstagramIcon = () => (
 const GmailIcon = () => (
   <svg width="32" height="32" viewBox="0 0 48 48" style={{ filter: 'drop-shadow(0 0 8px #ea4335)' }} xmlns="http://www.w3.org/2000/svg">
     <g>
-      <rect x="4" y="8" width="40" height="32" rx="4" fill="#fff"/>
-      <path d="M44 12v24c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4V12l20 15 20-15z" fill="#fff"/>
-      <path d="M44 12l-20 15L4 12V8c0-2.2 1.8-4 4-4h32c2.2 0 4 1.8 4 4v4z" fill="#f2f2f2"/>
-      <path d="M24 27L4 12l2.7-2.7L24 21.3l17.3-12L44 12z" fill="#ea4335"/>
-      <path d="M44 12v24c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4V12l20 15 20-15z" fill="none" stroke="#ea4335" strokeWidth="2"/>
+      <rect x="4" y="8" width="40" height="32" rx="4" fill="#fff" />
+      <path d="M44 12v24c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4V12l20 15 20-15z" fill="#fff" />
+      <path d="M44 12l-20 15L4 12V8c0-2.2 1.8-4 4-4h32c2.2 0 4 1.8 4 4v4z" fill="#f2f2f2" />
+      <path d="M24 27L4 12l2.7-2.7L24 21.3l17.3-12L44 12z" fill="#ea4335" />
+      <path d="M44 12v24c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4V12l20 15 20-15z" fill="none" stroke="#ea4335" strokeWidth="2" />
     </g>
   </svg>
 );
@@ -183,7 +183,7 @@ export default function AboutPage() {
       >
         ← Back to Home
       </button>
-  <div className={exitAnim ? 'about-exit-anim' : ''} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+      <div className={exitAnim ? 'about-exit-anim' : ''} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
         <h1 style={{
           color: '#00d8ff',
           marginBottom: '2.5rem',
@@ -200,16 +200,6 @@ export default function AboutPage() {
           margin: '0 auto 2.5rem auto',
         }}>
           About Us
-          <br/>
-          <span style={{
-            fontSize: isMobile ? '1.1rem' : '1.5rem',
-            color: '#fff',
-            textShadow: '0 0 10px #00d8ff',
-            fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif',
-            fontWeight: 500
-          }}>
-            One creator. One vision. All the way.
-          </span>
         </h1>
         <div style={centerFlex}>
           {/* Card Flip for Mobile */}
@@ -292,7 +282,7 @@ export default function AboutPage() {
                     Creator Details
                   </h2>
                   <div style={{ color: '#fff', fontSize: '1.15rem', marginBottom: 24, fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif', textAlign: 'center' }}>
-                    Doing Everything Possible!<br/>
+                    Doing Everything Possible!<br />
                     <span style={{ color: '#fff', fontSize: '1rem' }}>Feel free to contact me anytime !!</span>
                   </div>
                   <div style={{ display: 'flex', gap: 24, justifyContent: 'center' }}>
@@ -375,8 +365,8 @@ export default function AboutPage() {
                       Creator Details
                     </h2>
                     <div style={{ color: '#fff', fontSize: '1.15rem', marginBottom: 24, fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif', textAlign: 'left' }}>
-                      <strong>Jay Mehta</strong><br/>
-                      Doing Everything Possible!<br/>
+                      <strong>Jay Mehta</strong><br />
+                      Doing Everything Possible!<br />
                       <span style={{ color: '#fff', fontSize: '1rem' }}>feel free to contact me anytime !!</span>
                     </div>
                     <div style={{ display: 'flex', gap: 24, justifyContent: 'flex-start' }}>
