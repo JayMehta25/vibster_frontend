@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import TutorialPage from "./TutorialPage";
 import Home_page from "./Home";
 import ChatLanding from "./ChatLanding";
@@ -18,7 +19,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Navigate to="/tutorial" />} />
-          
+
           {/* Main Application Routes */}
           <Route path="/tutorial" element={<TutorialPage />} />
           <Route path="/Home" element={<Home_page />} />
@@ -33,6 +34,7 @@ function App() {
           <Route path="/videocall" element={<VideoCall />} />
         </Routes>
       </Router>
+      <Analytics />
     </div>
   );
 }
