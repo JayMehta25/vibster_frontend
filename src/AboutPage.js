@@ -98,7 +98,6 @@ if (!document.getElementById('gradient-move-keyframes')) {
 
 export default function AboutPage() {
   const [showDetails, setShowDetails] = useState(false);
-  const [exitAnim, setExitAnim] = useState(false);
   const isMobile = window.innerWidth <= 600;
   const navigate = useNavigate();
 
@@ -115,13 +114,9 @@ export default function AboutPage() {
     margin: '0 auto',
   };
 
-  // Handler for back button with fade animation
+  // Handler for back button - navigate immediately without animation
   const handleBack = () => {
-    setExitAnim(true);
-    setTimeout(() => {
-      navigate('/Home');
-      setExitAnim(false);
-    }, 1000); // Increased duration for slower fade
+    navigate('/Home');
   };
 
   return (
@@ -139,28 +134,6 @@ export default function AboutPage() {
         overflow: 'hidden',
       }}
     >
-      <style>{`
-        .about-exit-anim {
-          animation: aboutPageFadeOut 1s ease-in-out forwards;
-        }
-        @keyframes aboutPageFadeOut {
-          0% {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0px);
-          }
-          50% {
-            opacity: 0.5;
-            transform: scale(0.98);
-            filter: blur(1px);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(0.95);
-            filter: blur(3px);
-          }
-        }
-      `}</style>
       {/* Back to Home Button */}
       <button
         onClick={handleBack}
@@ -183,24 +156,7 @@ export default function AboutPage() {
       >
         ← Back to Home
       </button>
-      <div className={exitAnim ? 'about-exit-anim' : ''} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-        <h1 style={{
-          color: '#00d8ff',
-          marginBottom: '2.5rem',
-          textAlign: 'center',
-          textShadow: '0 0 18px #00d8ff, 0 0 30px #fff',
-          fontFamily: 'Audiowide, Poppins, "Segoe UI", Arial, sans-serif',
-          fontSize: isMobile ? '2.2rem' : '3.2rem',
-          letterSpacing: '2px',
-          lineHeight: 1.2,
-          marginLeft: 0,
-          marginRight: 0,
-          width: '100%',
-          maxWidth: 700,
-          margin: '0 auto 2.5rem auto',
-        }}>
-          About Us
-        </h1>
+      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div style={centerFlex}>
           {/* Card Flip for Mobile */}
           {isMobile ? (

@@ -1,6 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AuthPage from "./AuthPage";
 import TutorialPage from "./TutorialPage";
 import Home_page from "./Home";
 import ChatLanding from "./ChatLanding";
@@ -16,23 +19,26 @@ function App() {
   return (
     <div>
       <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Navigate to="/tutorial" />} />
+        <AuthProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Navigate to="/tutorial" />} />
+            <Route path="/tutorial" element={<TutorialPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/Home" element={<Home_page />} />
+            <Route path="/interest-chat" element={<InterestChat />} />
+            <Route path="/features" element={<FeaturesGrid />} />
+            <Route path="/about" element={<AboutPage />} />
 
-          {/* Main Application Routes */}
-          <Route path="/tutorial" element={<TutorialPage />} />
-          <Route path="/Home" element={<Home_page />} />
-          <Route path="/TutorialPage" element={<TutorialPage />} />
-          <Route path="/chatlanding" element={<ChatLanding />} />
-          <Route path="/chatmain" element={<ChatMain />} />
-          <Route path="/features" element={<FeaturesGrid />} />
-          <Route path="/interest-chat" element={<InterestChat />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/user-reviews" element={<UserReviewsPage />} />
-          <Route path="/voicecall" element={<VoiceCall />} />
-          <Route path="/videocall" element={<VideoCall />} />
-        </Routes>
+            {/* Protected routes */}
+            <Route path="/TutorialPage" element={<ProtectedRoute><TutorialPage /></ProtectedRoute>} />
+            <Route path="/chatlanding" element={<ProtectedRoute><ChatLanding /></ProtectedRoute>} />
+            <Route path="/chatmain" element={<ProtectedRoute><ChatMain /></ProtectedRoute>} />
+            <Route path="/user-reviews" element={<ProtectedRoute><UserReviewsPage /></ProtectedRoute>} />
+            <Route path="/voicecall" element={<ProtectedRoute><VoiceCall /></ProtectedRoute>} />
+            <Route path="/videocall" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
+          </Routes>
+        </AuthProvider>
       </Router>
       <Analytics />
     </div>

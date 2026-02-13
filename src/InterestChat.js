@@ -9,7 +9,7 @@ import Grainient from './Grainient';
 // Fallback to localhost if ngrok is down, or use the current host if browsing via ngrok
 
 
-const BACKEND_BASE_URL = "https://vibester-back.onrender.com";
+const BACKEND_BASE_URL = "https://b8ba-183-87-251-162.ngrok-free.app";
 
 const InterestChat = () => {
     const location = useLocation();
@@ -671,12 +671,6 @@ const InterestChat = () => {
                                                             onClick={() => { setShowAIDropdown(false); fetchIcebreaker(); }}
                                                         >
                                                             Get an icebreaker
-                                                        </div>
-                                                        <div
-                                                            style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                            onClick={() => { setShowAIDropdown(false); handleStartBot(); }}
-                                                        >
-                                                            Get a conversation suggestion
                                                         </div>
                                                         <div
                                                             style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}

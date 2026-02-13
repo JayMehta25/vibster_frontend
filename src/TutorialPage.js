@@ -18,7 +18,7 @@ const TutorialPage = () => {
     // Store the name in localStorage for persistence
     localStorage.setItem('username', name);
 
-    // After the animation ends, navigate to the homepage
+    // After the animation ends, navigate to homepage
     setTimeout(() => {
       navigate("/Home", { state: { name } });
     }, 1000); // 1s delay matches fadeOut animation
@@ -106,10 +106,9 @@ const TutorialPage = () => {
 
         /* Step images */
         .tutorial-card img {
-          height: 150px;
+          height: 300px;
           width: 100%;
-          object-fit: cover;
-          object-position: center -70px;
+          object-fit: contain;
           border-radius: 15px;
           margin-top: auto;
         }
@@ -141,18 +140,17 @@ const TutorialPage = () => {
       `}</style>
 
       <div
-        className={`tutorial-container container-fluid ${
-          fadeOut ? "fade-out" : ""
-        }`}
+        className={`tutorial-container container-fluid ${fadeOut ? "fade-out" : ""
+          }`}
       >
         {/* RippleGrid Background */}
-        <div style={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          width: '100%', 
-          height: '100%', 
-          zIndex: 1 
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 1
         }}>
           <RippleGrid
             enableRainbow={false}
@@ -185,9 +183,9 @@ const TutorialPage = () => {
               <p>Check out how to use the app.</p>
             </Step>
             <Step>
-              <h2>Connect with random people!</h2>
-              <img src="/step1.png" alt="Step 1" />
-              <p>Connect with random people based on your interests.</p>
+              <h2>Finding Your Tribe...</h2>
+              <img src="/find_tribe.png" alt="Finding Your Tribe" />
+              <p>Searching the digital universe for people who share your vibe.</p>
             </Step>
             <Step>
               <h2>Create private rooms</h2>

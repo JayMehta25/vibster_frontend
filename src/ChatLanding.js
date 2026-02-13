@@ -6,8 +6,10 @@ import Particles from './particlepage';
 import Swal from 'sweetalert2';
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5Qrcode } from 'html5-qrcode';
+import { useAuth } from './contexts/AuthContext';
 
 function ChatLanding() {
+  const { user, getProfile } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -92,6 +94,24 @@ function ChatLanding() {
       window.removeEventListener('offline', updateOnlineStatus);
     };
   }, []);
+
+  // Pre-fill username from localStorage or fetch from profile
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUsername(storedUsername);
+    } else if (user) {
+      // If user is logged in but no username in local storage, fetch it
+      const fetchProfile = async () => {
+        const { data, error } = await getProfile();
+        if (data && data.username) {
+          setUsername(data.username);
+          localStorage.setItem('username', data.username);
+        }
+      };
+      fetchProfile();
+    }
+  }, [user, getProfile]);
 
   // Generate random room code for offline mode
   const generateOfflineRoomCode = () => {
@@ -533,6 +553,19 @@ function ChatLanding() {
         padding: '20px',
       }}>
         <div className="text-center" style={{ pointerEvents: 'auto', maxWidth: '500px', width: '100%' }}>
+          {username && (
+            <div style={{
+              color: '#00d8ff',
+              fontSize: '1.2rem',
+              fontWeight: '600',
+              marginBottom: '10px',
+              textShadow: '0 0 10px rgba(0, 216, 255, 0.5)',
+              fontFamily: 'Orbitron, sans-serif',
+              animation: 'fadeIn 1s ease-out'
+            }}>
+              Welcome back, {username}!
+            </div>
+          )}
           <h1
             className="mb-4 text-white"
             style={{

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import Chatbot from "./Chatbot"; // Import the chatbot
 import Galaxy from './components/Galaxy'; // Import the Galaxy background
+import { useAuth } from './contexts/AuthContext';
 import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from 'sweetalert2';
 import RotatingText from './components/RotatingText';
@@ -70,6 +71,8 @@ function OnlineStatus({ isOnline }) {
     </div>
   );
 }
+
+// ---------- Welcome Ticker Component ----------
 
 // ---------- ChatBot Component ----------
 function ChatBot() {
@@ -223,6 +226,7 @@ function ChatBot() {
 
 // ---------- Main Homepage Component ----------
 export default function Homepage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
   const name = state?.name || localStorage.getItem('username') || '';
@@ -233,6 +237,7 @@ export default function Homepage() {
   const [showInterestModal, setShowInterestModal] = useState(false);
   const [modalInterests, setModalInterests] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Ref for the scroll animation section
   const howItWorksRef = useRef(null);
@@ -348,14 +353,58 @@ export default function Homepage() {
 
   // Handler for create room
   const handleCreateRoom = () => {
-    // Optionally, generate a random code and navigate
-    // For now, just navigate to chatmain with a random code
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    navigate("/chatmain", { state: { roomCode: code, interest: selectedInterests.join(',') } });
+    // If user is authenticated, go straight to ChatLanding
+    if (user) {
+      navigate("/ChatLanding");
+      return;
+    }
+
+    // If not authenticated, show the alert
+    Swal.fire({
+      title: 'ACCOUNT REQUIRED',
+      text: 'Please sign in to access premium chat features.',
+      icon: 'warning',
+      background: 'rgba(10, 20, 30, 0.95)',
+      color: '#fff',
+      confirmButtonColor: '#00d8ff',
+      showClass: {
+        popup: 'animate__animated animate__rubberBand'
+      },
+      hideClass: {
+        popup: 'animate__animated animate__fadeOutUp'
+      },
+      showConfirmButton: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/auth");
+      }
+    });
   };
 
   // Handler for join room
   const handleJoinRoom = () => {
+    if (!user) {
+      Swal.fire({
+        title: 'ACCOUNT REQUIRED',
+        text: 'Please sign in to access premium chat features.',
+        icon: 'warning',
+        background: 'rgba(10, 20, 30, 0.95)',
+        color: '#fff',
+        confirmButtonColor: '#00d8ff',
+        showClass: {
+          popup: 'animate__animated animate__rubberBand'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp'
+        },
+        showConfirmButton: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/auth");
+        }
+      });
+      return;
+    }
     if (roomCodeInput.trim()) {
       navigate("/chatmain", { state: { roomCode: roomCodeInput.trim(), interest: selectedInterests.join(',') } });
     }
@@ -595,21 +644,34 @@ export default function Homepage() {
             z-index: 1000;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(5px);
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: top 0.3s ease;
+          }
+
+          .navbar .container-fluid {
             display: flex;
             align-items: center;
-            padding: 15px 30px;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            padding: 0;
+          }
+
+          .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
           }
           
           .navbar-title {
             font-family: 'Orbitron', monospace;
             font-size: 2rem;
-            margin-left: 10px;
             color: #fff;
             text-shadow: 0 0 5px #00d8ff, 0 0 10px #00d8ff;
             font-weight: 700;
             letter-spacing: 2px;
+            white-space: nowrap;
+            margin-right:70px;
           }
           .cursor {
             display: inline-block;
@@ -619,6 +681,14 @@ export default function Homepage() {
             animation: blink 1s infinite;
             vertical-align: middle;
           }
+          
+          .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+          }
+
           .nav-button {
             padding: 10px 20px;
             font-size: 1rem;
@@ -627,7 +697,7 @@ export default function Homepage() {
             border: 2px solid #00d8ff;
             border-radius: 25px;
             cursor: pointer;
-            margin-left: 20px;
+            margin-left: 0;
             transition: all 0.3s ease;
             font-weight: bold;
             text-shadow: 0 0 5px rgba(0, 216, 255, 0.7);
@@ -649,6 +719,165 @@ export default function Homepage() {
             background-color: #ff00de;
             color: #fff;
             box-shadow: 0 0 15px #ff00de, 0 0 25px #ff00de;
+          }
+
+          /* Mobile Navigation */
+          .mobile-nav-right {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            margin-left: auto;
+          }
+
+          .mobile-signin {
+            margin-left: 0 !important;
+          }
+
+          /* Hamburger Menu Icon */
+          .hamburger-menu {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: none; /* Hidden on desktop */
+            flex-direction: column;
+            gap: 5px;
+            padding: 8px;
+            z-index: 1001;
+            margin-left: 10px;
+          }
+
+          .hamburger-menu span {
+            width: 25px;
+            height: 3px;
+            background: #00d8ff;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 216, 255, 0.7);
+          }
+
+          .hamburger-menu.open span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+          }
+
+          .hamburger-menu.open span:nth-child(2) {
+            opacity: 0;
+          }
+
+          .hamburger-menu.open span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+          }
+
+          /* Mobile Dropdown Menu */
+          .mobile-dropdown {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(10, 20, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 183, 235, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 40px rgba(0, 183, 235, 0.3);
+          }
+
+          .mobile-dropdown.show {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateX(-50%) translateY(0);
+          }
+
+          .mobile-menu-item {
+            background: transparent;
+            color: #00d8ff;
+            border: 2px solid #00d8ff;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 216, 255, 0.7);
+          }
+
+          .mobile-menu-item:hover {
+            background-color: #00d8ff;
+            color: #000;
+            box-shadow: 0 0 15px #00d8ff;
+          }
+
+          .mobile-menu-item.logout {
+            border-color: #ff00de;
+            color: #ff00de;
+            text-shadow: 0 0 5px rgba(255, 0, 222, 0.7);
+          }
+
+          .mobile-menu-item.logout:hover {
+            background-color: #ff00de;
+            color: #fff;
+            box-shadow: 0 0 15px #ff00de;
+          }
+
+          /* Responsive Styles */
+          @media (max-width: 768px) {
+            .desktop-only {
+              display: none !important;
+            }
+
+            .mobile-nav-right {
+              display: flex !important;
+            }
+
+            .navbar {
+              padding: 10px 15px;
+            }
+
+            .navbar .container-fluid {
+              padding: 0;
+              margin: 0;
+            }
+
+            .navbar-left {
+              gap: 15px;
+              margin-left: 0;
+              padding-left: 0;
+            }
+
+            .hamburger-menu {
+              display: flex !important; /* Show on mobile */
+            }
+
+            .navbar-title {
+              font-size: 1.2rem;
+              margin-left: 0;
+              letter-spacing: 1px;
+            }
+
+            .nav-button {
+              padding: 6px 12px;
+              font-size: 0.85rem;
+            }
+
+            .hamburger-menu {
+              padding: 5px;
+              margin-left: 8px;
+            }
+
+            .hamburger-menu span {
+              width: 22px;
+              height: 2.5px;
+            }
           }
 
           /* Main Content Card */
@@ -1437,14 +1666,28 @@ export default function Homepage() {
             <div className="navbar-left">
               <TypewriterTitle />
               <OnlineStatus isOnline={isOnline} />
+              {/* Mobile: Hamburger Menu */}
+              <button
+                className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+              </button>
             </div>
-            <div className="navbar-links">
+
+            <div className="navbar-links desktop-only">
               <button className="nav-button" onClick={() => navigate('/features')}>
                 Features
               </button>
               <button className="nav-button" onClick={handleAboutUs}>About Us</button>
-              <button className="nav-button" onClick={() => navigate("/ChatLanding")}>
+              <button className="nav-button" onClick={handleCreateRoom}>
                 Create Room
+              </button>
+              <button className="nav-button" onClick={() => navigate("/auth")}>
+                Sign In
               </button>
               <button className="logout-button" onClick={handleLogout} title="Logout">
                 🚪
@@ -1452,6 +1695,25 @@ export default function Homepage() {
             </div>
           </div>
         </nav>
+
+        {/* Mobile Dropdown Menu */}
+        <div className={`mobile-dropdown ${mobileMenuOpen ? 'show' : ''}`}>
+          <button className="mobile-menu-item" onClick={() => { navigate('/features'); setMobileMenuOpen(false); }}>
+            Features
+          </button>
+          <button className="mobile-menu-item" onClick={() => { handleAboutUs(); setMobileMenuOpen(false); }}>
+            About Us
+          </button>
+          <button className="mobile-menu-item" onClick={() => { handleCreateRoom(); setMobileMenuOpen(false); }}>
+            Create Room
+          </button>
+          <button className="mobile-menu-item" onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}>
+            Sign In
+          </button>
+          <button className="mobile-menu-item logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+            Logout 🚪
+          </button>
+        </div>
 
         {/* ---------- Modern Hero Section ---------- */}
         <section className="hero-section-bg">
