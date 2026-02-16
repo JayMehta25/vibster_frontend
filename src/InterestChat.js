@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import EmbeddedVideoCall from './components/EmbeddedVideoCall';
 import socket from './socket';
 import './InterestChat.css';
 import Globe from 'react-globe.gl';
@@ -61,6 +62,7 @@ const InterestChat = () => {
     const [showCompatibility, setShowCompatibility] = useState(false);
     const [compatibilityResult, setCompatibilityResult] = useState(null);
     const [compatibilityLoading, setCompatibilityLoading] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
     const [geminiStatus, setGeminiStatus] = useState('checking'); // 'checking', 'connected', 'disconnected'
 
 
@@ -172,6 +174,7 @@ const InterestChat = () => {
         const roomAssignedHandler = ({ roomName }) => {
             console.log('🔍 Debug: Room assigned:', roomName);
             setAssignedRoom(roomName);
+            setShowVideo(true);
         };
 
         const userCountHandler = ({ count }) => {
@@ -247,6 +250,9 @@ const InterestChat = () => {
             };
             socket.emit('sendInterestMessage', messageData);
             setInput('');
+            if (assignedRoom && isMatchFound) {
+                setShowVideo(true);
+            }
         }
     };
 
@@ -613,319 +619,309 @@ const InterestChat = () => {
                             </div>
                         </div>
                     ) : (
-                        <>
-                            <header
-                                className="interest-chat-header d-flex flex-column px-4 py-3"
-                                style={{
-                                    backdropFilter: 'blur(10px)',
-                                    background: geminiStatus === 'connected' ? 'rgba(40, 167, 69, 0.25)' : (geminiStatus === 'disconnected' ? 'rgba(220, 53, 69, 0.25)' : 'rgba(0, 183, 255, 0.08)'),
-                                    transition: 'background 0.5s ease',
-                                    borderBottom: '1.5px solid #00b7ff55',
-                                    zIndex: 1000,
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    padding: '1rem 1.5rem',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                <div className="d-flex justify-content-between align-items-start w-100">
-                                    {/* Left Section: AI & Online Count */}
-                                    <div className="d-flex flex-column align-items-start gap-2">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div style={{ position: 'relative' }}>
-                                                <button
-                                                    onClick={() => setShowAIDropdown(!showAIDropdown)}
-                                                    style={{
-                                                        background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: 16,
-                                                        padding: '0.4rem 1.2rem',
-                                                        fontWeight: 700,
-                                                        fontSize: 16,
-                                                        boxShadow: '0 0 12px #00b7ff33',
-                                                        cursor: 'pointer',
-                                                        letterSpacing: 0.5,
-                                                        height: 40,
-                                                        transition: 'all 0.2s',
-                                                    }}
+                        <div className="interest-chat-wrapper" style={{ display: 'flex', height: '100%', width: '100%' }}>
+                            {showVideo && assignedRoom && (
+                                <EmbeddedVideoCall
+                                    roomCode={assignedRoom}
+                                    username={username}
+                                    onClose={() => setShowVideo(false)}
+                                />
+                            )}
+                            <div className="interest-chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                                <header
+                                    className="interest-chat-header d-flex flex-column px-4 py-3"
+                                    style={{
+                                        backdropFilter: 'blur(10px)',
+                                        background: geminiStatus === 'connected' ? 'rgba(40, 167, 69, 0.25)' : (geminiStatus === 'disconnected' ? 'rgba(220, 53, 69, 0.25)' : 'rgba(0, 183, 255, 0.08)'),
+                                        transition: 'background 0.5s ease',
+                                        borderBottom: '1.5px solid #00b7ff55',
+                                        zIndex: 1000,
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        padding: '1rem 1.5rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                >
+                                    <div className="d-flex justify-content-between align-items-start w-100">
+                                        {/* Left Section: AI & Online Count */}
+                                        <div className="d-flex flex-column align-items-start gap-2">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div style={{ position: 'relative' }}>
+                                                    <button
+                                                        onClick={() => setShowAIDropdown(!showAIDropdown)}
+                                                        style={{
+                                                            background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
+                                                            color: '#fff',
+                                                            border: 'none',
+                                                            borderRadius: 16,
+                                                            padding: '0.4rem 1.2rem',
+                                                            fontWeight: 700,
+                                                            fontSize: 16,
+                                                            boxShadow: '0 0 12px #00b7ff33',
+                                                            cursor: 'pointer',
+                                                            letterSpacing: 0.5,
+                                                            height: 40,
+                                                            transition: 'all 0.2s',
+                                                        }}
+                                                    >
+                                                        AI <span role="img" aria-label="star">✨</span>
+                                                    </button>
+                                                    {showAIDropdown && (
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            top: '110%',
+                                                            left: 0,
+                                                            background: '#fff',
+                                                            borderRadius: 12,
+                                                            boxShadow: '0 4px 24px #00b7ff33',
+                                                            minWidth: 200,
+                                                            zIndex: 100,
+                                                            padding: '0.5rem 0',
+                                                        }}>
+                                                            <div
+                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
+                                                                onClick={() => { setShowAIDropdown(false); fetchIcebreaker(); }}
+                                                            >
+                                                                Get an icebreaker
+                                                            </div>
+                                                            <div
+                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
+                                                                onClick={() => { setShowAIDropdown(false); setShowChatHistory(true); }}
+                                                            >
+                                                                Show chat history
+                                                            </div>
+                                                            <div
+                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
+                                                                onClick={async () => {
+                                                                    setShowAIDropdown(false);
+                                                                    setShowFlanChat(true);
+                                                                    setFlanMessages([]);
+                                                                    setFlanLoading(true);
+                                                                    try {
+                                                                        const chat_history = messages.map(m => m.message);
+                                                                        const res = await axios.post(FLAN_CHAT_URL, { prompt: `Chat history: \n${chat_history.join('\n')}\nYou are the user's assistant. Greet the user and let them know you are here to help with the conversation.` });
+                                                                        setFlanMessages([{ sender: 'flan', text: res.data.response || "I'm here to assist you, carry your conversation or ask me anything!" }]);
+                                                                    } catch (err) {
+                                                                        setFlanMessages([{ sender: 'flan', text: "I'm here to assist you, carry your conversation or ask me anything!" }]);
+                                                                    }
+                                                                    setFlanLoading(false);
+                                                                }}
+                                                            >
+                                                                Chat with your assistant
+                                                            </div>
+                                                            <div
+                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027' }}
+                                                                onClick={() => { setShowAIDropdown(false); fetchCompatibility(); }}
+                                                            >
+                                                                Get compatibility meter
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div
+                                                    className="chat-info text-nowrap"
+                                                    style={{ fontWeight: 700, color: '#fff', fontSize: 14, textShadow: '0 0 8px #00b7ff55' }}
                                                 >
-                                                    AI <span role="img" aria-label="star">✨</span>
-                                                </button>
-                                                {showAIDropdown && (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '110%',
-                                                        left: 0,
-                                                        background: '#fff',
-                                                        borderRadius: 12,
-                                                        boxShadow: '0 4px 24px #00b7ff33',
-                                                        minWidth: 200,
-                                                        zIndex: 100,
-                                                        padding: '0.5rem 0',
-                                                    }}>
-                                                        <div
-                                                            style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                            onClick={() => { setShowAIDropdown(false); fetchIcebreaker(); }}
-                                                        >
-                                                            Get an icebreaker
-                                                        </div>
-                                                        <div
-                                                            style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                            onClick={() => { setShowAIDropdown(false); setShowChatHistory(true); }}
-                                                        >
-                                                            Show chat history
-                                                        </div>
-                                                        <div
-                                                            style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                            onClick={async () => {
-                                                                setShowAIDropdown(false);
-                                                                setShowFlanChat(true);
-                                                                setFlanMessages([]);
-                                                                setFlanLoading(true);
-                                                                try {
-                                                                    const chat_history = messages.map(m => m.message);
-                                                                    const res = await axios.post(FLAN_CHAT_URL, { prompt: `Chat history: \n${chat_history.join('\n')}\nYou are the user's assistant. Greet the user and let them know you are here to help with the conversation.` });
-                                                                    setFlanMessages([{ sender: 'flan', text: res.data.response || "I'm here to assist you, carry your conversation or ask me anything!" }]);
-                                                                } catch (err) {
-                                                                    setFlanMessages([{ sender: 'flan', text: "I'm here to assist you, carry your conversation or ask me anything!" }]);
-                                                                }
-                                                                setFlanLoading(false);
+                                                    {userCount} Online
+                                                </div>
+                                            </div>
+                                            <div style={{
+                                                fontSize: '11px',
+                                                fontWeight: 'bold',
+                                                color: geminiStatus === 'connected' ? '#28a745' : (geminiStatus === 'disconnected' ? '#dc3545' : '#00b7ff'),
+                                                textShadow: '0 0 5px rgba(0,0,0,0.5)',
+                                                marginLeft: '4px'
+                                            }}>
+                                                {geminiStatus === 'connected' ? 'GEMINI: ONLINE' : (geminiStatus === 'disconnected' ? 'GEMINI: OFFLINE' : 'GEMINI: CHECKING...')}
+                                            </div>
+                                        </div>
+
+                                        {/* Right Section: Buttons */}
+                                        <div className="d-flex align-items-center gap-2">
+                                            {isMatchFound && assignedRoom && (
+                                                <>
+                                                    <>
+                                                        <button
+                                                            onClick={() => setShowVideo(!showVideo)}
+                                                            style={{
+                                                                background: showVideo ? 'rgba(0, 183, 255, 0.2)' : 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
+                                                                color: '#fff',
+                                                                border: showVideo ? '1px solid #00b7ff' : 'none',
+                                                                borderRadius: 16,
+                                                                padding: '0.5rem 1rem',
+                                                                fontWeight: 700,
+                                                                fontSize: 14,
+                                                                boxShadow: '0 0 12px #00b7ff33',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 6,
+                                                                height: 40
                                                             }}
+                                                            title="Toggle Video Chat"
                                                         >
-                                                            Chat with your assistant
-                                                        </div>
-                                                        <div
-                                                            style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027' }}
-                                                            onClick={() => { setShowAIDropdown(false); fetchCompatibility(); }}
-                                                        >
-                                                            Get compatibility meter
-                                                        </div>
+                                                            <span role="img" aria-label="video">🎥</span> <span className="d-none d-sm-inline">{showVideo ? 'Hide Video' : 'Video Call'}</span>
+                                                        </button>
+                                                    </>
+                                                </>
+                                            )}
+                                            <button
+                                                onClick={() => navigate('/Home')}
+                                                className="back-button"
+                                                style={{
+                                                    background: '#00b7ff',
+                                                    color: '#fff',
+                                                    fontWeight: 700,
+                                                    border: 'none',
+                                                    borderRadius: 16,
+                                                    padding: '0.5rem 1.5rem',
+                                                    fontSize: 14,
+                                                    boxShadow: '0 0 16px #00b7ff55',
+                                                    cursor: 'pointer',
+                                                    height: 40
+                                                }}
+                                            >
+                                                Back
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </header>
+                                <main
+                                    className="interest-chat-messages"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '70px',
+                                        left: 0,
+                                        right: 0,
+                                        bottom: '80px',
+                                        background: 'transparent',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 18,
+                                        overflowY: 'auto',
+                                        overflowX: 'hidden',
+                                        zIndex: 1,
+                                        padding: '1.5rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                >
+                                    {messages.map((msg, index) => {
+                                        const likes = msg.likes || [];
+                                        return (
+                                            <div
+                                                key={msg.id || index}
+                                                className={`message open-message ${msg.username === username ? 'my-message' : 'other-message'}`}
+                                                style={{
+                                                    alignSelf: msg.username === username ? 'flex-end' : 'flex-start',
+                                                    textAlign: msg.username === username ? 'right' : 'left',
+                                                    background: msg.username === username ? 'linear-gradient(90deg, #00b7ff55 0%, #2c5364 100%)' : 'linear-gradient(90deg, #232526 0%, #0f2027 100%)',
+                                                    color: '#fff',
+                                                    borderRadius: 22,
+                                                    padding: '1.1rem 2rem',
+                                                    maxWidth: '60vw',
+                                                    fontSize: 18,
+                                                    fontWeight: 500,
+                                                    boxShadow: msg.username === username ? '0 0 24px #00b7ff44' : '0 0 12px #00b7ff22',
+                                                    marginBottom: 2,
+                                                    border: msg.username === username ? '1.5px solid #00b7ff' : '1.5px solid #232526',
+                                                    backdropFilter: 'blur(2px)',
+                                                    transition: 'all 0.2s',
+                                                    letterSpacing: 0.2,
+                                                    marginLeft: msg.username === username ? 'auto' : 0,
+                                                    marginRight: msg.username === username ? 0 : 'auto',
+                                                    position: 'relative',
+                                                    cursor: 'pointer',
+                                                }}
+                                                onDoubleClick={() => handleLikeMessage(msg.id)}
+                                            >
+                                                <strong style={{ color: '#00b7ff', fontWeight: 700 }}>{msg.username}: </strong>{msg.message}
+                                                {/* Debug: Always try to show the image and print the attachment object */}
+                                                {msg.attachment && (
+                                                    <div style={{ marginTop: 8 }}>
+                                                        <div style={{ fontSize: 10, color: '#ff0', marginBottom: 4 }}>DEBUG: {JSON.stringify(msg.attachment)}</div>
+                                                        <img
+                                                            src={msg.attachment.url}
+                                                            alt={msg.attachment.name}
+                                                            style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div style={{ color: '#bbb', fontSize: 13, marginTop: 6, textAlign: 'right' }}>
+                                                    {msg.timestamp && !isNaN(new Date(msg.timestamp)) &&
+                                                        new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                    }
+                                                </div>
+                                                {likes.length > 0 && (
+                                                    <div style={{ color: '#ff4081', fontSize: 16, marginTop: 4, textAlign: 'right' }}>
+                                                        ❤️ {likes.length}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div
-                                                className="chat-info text-nowrap"
-                                                style={{ fontWeight: 700, color: '#fff', fontSize: 14, textShadow: '0 0 8px #00b7ff55' }}
-                                            >
-                                                {userCount} Online
-                                            </div>
-                                        </div>
-                                        <div style={{
-                                            fontSize: '11px',
-                                            fontWeight: 'bold',
-                                            color: geminiStatus === 'connected' ? '#28a745' : (geminiStatus === 'disconnected' ? '#dc3545' : '#00b7ff'),
-                                            textShadow: '0 0 5px rgba(0,0,0,0.5)',
-                                            marginLeft: '4px'
-                                        }}>
-                                            {geminiStatus === 'connected' ? 'GEMINI: ONLINE' : (geminiStatus === 'disconnected' ? 'GEMINI: OFFLINE' : 'GEMINI: CHECKING...')}
-                                        </div>
-                                    </div>
-
-                                    {/* Right Section: Buttons */}
-                                    <div className="d-flex align-items-center gap-2">
-                                        {isMatchFound && assignedRoom && (
-                                            <>
-                                                <button
-                                                    onClick={handleStartVoiceCall}
-                                                    style={{
-                                                        background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: 16,
-                                                        padding: '0.5rem 1rem',
-                                                        fontWeight: 700,
-                                                        fontSize: 14,
-                                                        boxShadow: '0 0 12px #00b7ff33',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 6,
-                                                        height: 40
-                                                    }}
-                                                    title="Start Voice Call"
-                                                >
-                                                    <span role="img" aria-label="voice">📞</span> <span className="d-none d-sm-inline">Voice Call</span>
-                                                </button>
-                                                <button
-                                                    onClick={handleStartVideoCall}
-                                                    style={{
-                                                        background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: 16,
-                                                        padding: '0.5rem 1rem',
-                                                        fontWeight: 700,
-                                                        fontSize: 14,
-                                                        boxShadow: '0 0 12px #00b7ff33',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 6,
-                                                        height: 40
-                                                    }}
-                                                    title="Start Video Call"
-                                                >
-                                                    <span role="img" aria-label="video">🎥</span> <span className="d-none d-sm-inline">Video Call</span>
-                                                </button>
-                                            </>
-                                        )}
-                                        <button
-                                            onClick={() => navigate('/Home')}
-                                            className="back-button"
-                                            style={{
-                                                background: '#00b7ff',
-                                                color: '#fff',
-                                                fontWeight: 700,
-                                                border: 'none',
-                                                borderRadius: 16,
-                                                padding: '0.5rem 1.5rem',
-                                                fontSize: 14,
-                                                boxShadow: '0 0 16px #00b7ff55',
-                                                cursor: 'pointer',
-                                                height: 40
-                                            }}
-                                        >
-                                            Back
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </header>
-                            <main
-                                className="interest-chat-messages"
-                                style={{
-                                    position: 'fixed',
-                                    top: '70px',
-                                    left: 0,
-                                    right: 0,
-                                    bottom: '80px',
-                                    background: 'transparent',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 18,
-                                    overflowY: 'auto',
-                                    overflowX: 'hidden',
-                                    zIndex: 1,
-                                    padding: '1.5rem',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                {messages.map((msg, index) => {
-                                    const likes = msg.likes || [];
-                                    return (
-                                        <div
-                                            key={msg.id || index}
-                                            className={`message open-message ${msg.username === username ? 'my-message' : 'other-message'}`}
-                                            style={{
-                                                alignSelf: msg.username === username ? 'flex-end' : 'flex-start',
-                                                textAlign: msg.username === username ? 'right' : 'left',
-                                                background: msg.username === username ? 'linear-gradient(90deg, #00b7ff55 0%, #2c5364 100%)' : 'linear-gradient(90deg, #232526 0%, #0f2027 100%)',
-                                                color: '#fff',
-                                                borderRadius: 22,
-                                                padding: '1.1rem 2rem',
-                                                maxWidth: '60vw',
-                                                fontSize: 18,
-                                                fontWeight: 500,
-                                                boxShadow: msg.username === username ? '0 0 24px #00b7ff44' : '0 0 12px #00b7ff22',
-                                                marginBottom: 2,
-                                                border: msg.username === username ? '1.5px solid #00b7ff' : '1.5px solid #232526',
-                                                backdropFilter: 'blur(2px)',
-                                                transition: 'all 0.2s',
-                                                letterSpacing: 0.2,
-                                                marginLeft: msg.username === username ? 'auto' : 0,
-                                                marginRight: msg.username === username ? 0 : 'auto',
-                                                position: 'relative',
-                                                cursor: 'pointer',
-                                            }}
-                                            onDoubleClick={() => handleLikeMessage(msg.id)}
-                                        >
-                                            <strong style={{ color: '#00b7ff', fontWeight: 700 }}>{msg.username}: </strong>{msg.message}
-                                            {/* Debug: Always try to show the image and print the attachment object */}
-                                            {msg.attachment && (
-                                                <div style={{ marginTop: 8 }}>
-                                                    <div style={{ fontSize: 10, color: '#ff0', marginBottom: 4 }}>DEBUG: {JSON.stringify(msg.attachment)}</div>
-                                                    <img
-                                                        src={msg.attachment.url}
-                                                        alt={msg.attachment.name}
-                                                        style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
-                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                    />
-                                                </div>
-                                            )}
-                                            <div style={{ color: '#bbb', fontSize: 13, marginTop: 6, textAlign: 'right' }}>
-                                                {msg.timestamp && !isNaN(new Date(msg.timestamp)) &&
-                                                    new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                }
-                                            </div>
-                                            {likes.length > 0 && (
-                                                <div style={{ color: '#ff4081', fontSize: 16, marginTop: 4, textAlign: 'right' }}>
-                                                    ❤️ {likes.length}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                                <div ref={messagesEndRef} />
-                            </main>
-                            <footer
-                                className="interest-chat-footer d-flex align-items-center px-3 py-3"
-                                style={{
-                                    background: 'rgba(0,183,255,0.08)',
-                                    borderTop: '1.5px solid #00b7ff55',
-                                    zIndex: 100,
-                                    position: 'fixed',
-                                    left: 0,
-                                    bottom: 0,
-                                    width: '100%',
-                                    backdropFilter: 'blur(10px)',
-                                    boxShadow: '0 -2px 24px #00b7ff22',
-                                    padding: '1rem 1.5rem',
-                                    boxSizing: 'border-box',
-                                    gap: 12,
-                                }}
-                            >
-                                <input
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    placeholder="Type a message..."
-                                    className="form-control me-2"
+                                        );
+                                    })}
+                                    <div ref={messagesEndRef} />
+                                </main>
+                                <footer
+                                    className="interest-chat-footer d-flex align-items-center px-3 py-3"
                                     style={{
-                                        borderRadius: 30,
-                                        background: 'rgba(24,31,42,0.7)',
-                                        color: '#fff',
-                                        border: '1.5px solid #00b7ff',
-                                        flex: 1,
-                                        minWidth: 0,
-                                        fontSize: 17,
-                                        fontWeight: 500,
-                                        boxShadow: '0 0 8px #00b7ff33',
-                                        height: 44,
-                                    }}
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    className="btn px-4 py-2"
-                                    style={{
-                                        borderRadius: 30,
-                                        fontWeight: 800,
-                                        background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
-                                        border: 'none',
-                                        fontSize: 19,
-                                        color: '#fff',
-                                        boxShadow: '0 0 16px #00b7ff55',
-                                        minWidth: 90,
-                                        height: 44,
+                                        background: 'rgba(0,183,255,0.08)',
+                                        borderTop: '1.5px solid #00b7ff55',
+                                        zIndex: 100,
+                                        position: 'absolute',
+                                        left: 0,
+                                        bottom: 0,
+                                        width: '100%',
+                                        backdropFilter: 'blur(10px)',
+                                        boxShadow: '0 -2px 24px #00b7ff22',
+                                        padding: '1rem 1.5rem',
+                                        boxSizing: 'border-box',
+                                        gap: 12,
                                     }}
                                 >
-                                    Send
-                                </button>
-                            </footer>
-                        </>
+                                    <input
+                                        type="text"
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                        placeholder="Type a message..."
+                                        className="form-control me-2"
+                                        style={{
+                                            borderRadius: 30,
+                                            background: 'rgba(24,31,42,0.7)',
+                                            color: '#fff',
+                                            border: '1.5px solid #00b7ff',
+                                            flex: 1,
+                                            minWidth: 0,
+                                            fontSize: 17,
+                                            fontWeight: 500,
+                                            boxShadow: '0 0 8px #00b7ff33',
+                                            height: 44,
+                                        }}
+                                    />
+                                    <button
+                                        onClick={handleSendMessage}
+                                        className="btn px-4 py-2"
+                                        style={{
+                                            borderRadius: 30,
+                                            fontWeight: 800,
+                                            background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
+                                            border: 'none',
+                                            fontSize: 19,
+                                            color: '#fff',
+                                            boxShadow: '0 0 16px #00b7ff55',
+                                            minWidth: 90,
+                                            height: 44,
+                                        }}
+                                    >
+                                        Send
+                                    </button>
+                                </footer>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
