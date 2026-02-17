@@ -595,6 +595,16 @@ const InterestChat = () => {
                                     <>
                                         {interests && interests.includes('random') ? (
                                             <>
+                                                <div className="dice-container">
+                                                    <div className="dice">
+                                                        <div className="dice-face face-1"><div className="dot"></div></div>
+                                                        <div className="dice-face face-2"><div className="dot"></div><div className="dot"></div></div>
+                                                        <div className="dice-face face-3"><div className="dot"></div><div className="dot"></div><div className="dot"></div></div>
+                                                        <div className="dice-face face-4"><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div></div>
+                                                        <div className="dice-face face-5"><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div></div>
+                                                        <div className="dice-face face-6"><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div><div className="dot"></div></div>
+                                                    </div>
+                                                </div>
                                                 <h2 style={{ fontWeight: 900, letterSpacing: 2, color: '#00b7ff', textShadow: '0 0 16px #00b7ff88' }}>FINDING A RANDOM CONNECTION...</h2>
                                                 <p style={{ color: '#fff', fontSize: 18 }}>Connecting you with anyone on the server. Get ready to vibe!</p>
                                             </>
