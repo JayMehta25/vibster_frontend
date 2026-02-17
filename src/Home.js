@@ -9,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from 'sweetalert2';
 import RotatingText from './components/RotatingText';
 import Globe from 'react-globe.gl';
+import socket from "./socket"; // Import the shared socket instance
 
 // Add at the top of the Homepage component
 const INTERESTS = [
@@ -41,7 +42,7 @@ function TypewriterTitle() {
 }
 
 // ---------- Online Status Component ----------
-function OnlineStatus({ isOnline }) {
+function OnlineStatus({ isOnline, onlineCount }) {
   return (
     <div className="online-status" style={{
       display: 'flex',
@@ -57,8 +58,9 @@ function OnlineStatus({ isOnline }) {
       border: `1px solid ${isOnline ? '#00ff00' : '#ff0000'}`,
       color: isOnline ? '#00ff00' : '#ff0000',
       textShadow: `0 0 5px ${isOnline ? 'rgba(0, 255, 0, 0.7)' : 'rgba(255, 0, 0, 0.7)'}`,
-      animation: isOnline ? 'pulseOnline 2s infinite' : 'pulseOffline 2s infinite'
-    }}>
+      animation: isOnline ? 'pulseOnline 2s infinite' : 'pulseOffline 2s infinite',
+      cursor: 'default'
+    }} title={isOnline ? `${onlineCount} users currently vibing` : 'No connection'}>
       <div style={{
         width: '8px',
         height: '8px',
@@ -67,7 +69,7 @@ function OnlineStatus({ isOnline }) {
         boxShadow: `0 0 8px ${isOnline ? '#00ff00' : '#ff0000'}`,
         animation: isOnline ? 'blinkOnline 1.5s infinite' : 'blinkOffline 1.5s infinite'
       }}></div>
-      <span className="d-none d-sm-inline">{isOnline ? 'Online' : 'Offline'}</span>
+      <span className="d-none d-sm-inline">{isOnline ? `${onlineCount} Online` : 'Offline'}</span>
     </div>
   );
 }
@@ -238,6 +240,7 @@ export default function Homepage() {
   const [modalInterests, setModalInterests] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [globalOnlineCount, setGlobalOnlineCount] = useState(0);
 
   // Ref for the scroll animation section
   const howItWorksRef = useRef(null);
@@ -535,7 +538,7 @@ export default function Homepage() {
     });
   };
 
-  // Effect to monitor network status
+  // Effect to monitor network status and socket online count
   useEffect(() => {
     const updateOnlineStatus = () => {
       setIsOnline(navigator.onLine);
@@ -544,9 +547,18 @@ export default function Homepage() {
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 
+    // Socket listener for global user count
+    const handleUserCount = (data) => {
+      console.log("🔍 Online users updated:", data.count);
+      setGlobalOnlineCount(data.count);
+    };
+
+    socket.on('totalOnlineUsers', handleUserCount);
+
     return () => {
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);
+      socket.off('totalOnlineUsers', handleUserCount);
     };
   }, []);
 
@@ -1701,7 +1713,7 @@ export default function Homepage() {
           <div className="container-fluid">
             <div className="navbar-left">
               <TypewriterTitle />
-              <OnlineStatus isOnline={isOnline} />
+              <OnlineStatus isOnline={isOnline} onlineCount={globalOnlineCount} />
               {/* Mobile: Hamburger Menu */}
               <button
                 className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
