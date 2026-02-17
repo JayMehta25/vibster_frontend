@@ -98,17 +98,29 @@ function ChatLanding() {
   // Pre-fill username from localStorage or fetch from profile
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
+    // Case-insensitive check for generic 'User'
+    const isGenericUser = !storedUsername || storedUsername.toLowerCase() === 'user';
+
+    if (storedUsername && !isGenericUser) {
       setUsername(storedUsername);
-    } else if (user) {
-      // If user is logged in but no username in local storage, fetch it
+    }
+
+    if (user) {
+      // Always try to get a better name if we are logged in
+      const metaUsername = user.user_metadata?.username;
+
       const fetchProfile = async () => {
         const { data, error } = await getProfile();
         if (data && data.username) {
           setUsername(data.username);
           localStorage.setItem('username', data.username);
+        } else if (metaUsername) {
+          // Fallback to metadata if profile fetch fails or has no username
+          setUsername(metaUsername);
+          localStorage.setItem('username', metaUsername);
         }
       };
+
       fetchProfile();
     }
   }, [user, getProfile]);

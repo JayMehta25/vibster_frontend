@@ -14,17 +14,42 @@ const AuthPage = () => {
 
     const navigate = useNavigate()
     const location = useLocation()
-    const { signIn, signUp, getProfile } = useAuth()
+    const { signIn, signUp, getProfile, user } = useAuth()
 
     // Get the name from tutorial if passed
     const tutorialName = location.state?.name || localStorage.getItem('username') || ''
 
-    // Pre-fill username if coming from tutorial
-    React.useEffect(() => {
-        if (tutorialName && !username) {
-            setUsername(tutorialName)
+    // Pre-fill username from localStorage or fetch from profile
+    useEffect(() => {
+        const storedUsername = localStorage.getItem('username');
+        // Case-insensitive check for generic 'User'
+        const isGenericUser = !storedUsername || storedUsername.toLowerCase() === 'user';
+
+        if (tutorialName && !username) { // Keep existing logic for tutorialName
+            setUsername(tutorialName);
+        } else if (storedUsername && !isGenericUser) {
+            setUsername(storedUsername);
         }
-    }, [tutorialName])
+
+        if (user) {
+            // Always try to get a better name if we are logged in
+            const metaUsername = user.user_metadata?.username;
+
+            const fetchProfile = async () => {
+                const { data, error } = await getProfile();
+                if (data && data.username) {
+                    setUsername(data.username);
+                    localStorage.setItem('username', data.username);
+                } else if (metaUsername) {
+                    // Fallback to metadata if profile fetch fails or has no username
+                    setUsername(metaUsername);
+                    localStorage.setItem('username', metaUsername);
+                }
+            };
+
+            fetchProfile();
+        }
+    }, [user, getProfile, tutorialName, username]);
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -47,7 +72,9 @@ const AuthPage = () => {
                 } else {
                     // Fetch profile to get username
                     const { data: profile, error: profileError } = await getProfile()
-                    const loggedInUsername = profile?.username || 'User'
+
+                    // Prioritize: Profile > Metadata > Fallback
+                    const loggedInUsername = profile?.username || data.user.user_metadata?.username || 'User'
 
                     // Store username in localStorage
                     localStorage.setItem('username', loggedInUsername)
@@ -91,19 +118,20 @@ const AuthPage = () => {
                     })
                 } else {
                     Swal.fire({
-                        title: 'Account Created!',
-                        text: `Welcome to Vibester, ${username}!`,
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false,
+                        title: 'Confirmation Email Sent!',
+                        text: `A link has been sent to ${email}. Please check your inbox and verify your account before logging in.`,
+                        icon: 'info',
                         background: 'rgba(10, 20, 30, 0.95)',
-                        color: '#fff'
+                        color: '#fff',
+                        confirmButtonColor: '#00d8ff'
                     })
 
                     // Store username in localStorage for compatibility
                     localStorage.setItem('username', username)
 
-                    navigate('/ChatLanding')
+                    // We don't navigate immediately because the user needs to confirm email
+                    // But for this flow, if the user allows auto-login after confirmation:
+                    // setIsLogin(true) 
                 }
             }
         } catch (error) {
