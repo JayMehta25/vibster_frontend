@@ -69,7 +69,7 @@ function OnlineStatus({ isOnline, onlineCount }) {
         boxShadow: `0 0 8px ${isOnline ? '#00ff00' : '#ff0000'}`,
         animation: isOnline ? 'blinkOnline 1.5s infinite' : 'blinkOffline 1.5s infinite'
       }}></div>
-      <span className="d-none d-sm-inline">{isOnline ? `${onlineCount} Online` : 'Offline'}</span>
+      <span style={{ marginLeft: '2px' }}>{isOnline ? `${onlineCount} Online` : 'Offline'}</span>
     </div>
   );
 }
