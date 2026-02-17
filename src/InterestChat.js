@@ -593,8 +593,17 @@ const InterestChat = () => {
                             <div className="searching-content" style={{ backdropFilter: 'blur(8px)', borderRadius: 24, background: 'rgba(0,183,255,0.07)', boxShadow: '0 8px 32px #00b7ff22', padding: '2.5rem 2rem', marginTop: 40 }}>
                                 {!isMatchFound && (
                                     <>
-                                        <h2 style={{ fontWeight: 900, letterSpacing: 2, color: '#00b7ff', textShadow: '0 0 16px #00b7ff88' }}>FINDING YOUR TRIBE...</h2>
-                                        <p style={{ color: '#fff', fontSize: 18 }}>Searching the digital universe for people who share your vibe.</p>
+                                        {interests && interests.includes('random') ? (
+                                            <>
+                                                <h2 style={{ fontWeight: 900, letterSpacing: 2, color: '#00b7ff', textShadow: '0 0 16px #00b7ff88' }}>FINDING A RANDOM CONNECTION...</h2>
+                                                <p style={{ color: '#fff', fontSize: 18 }}>Connecting you with anyone on the server. Get ready to vibe!</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <h2 style={{ fontWeight: 900, letterSpacing: 2, color: '#00b7ff', textShadow: '0 0 16px #00b7ff88' }}>FINDING YOUR TRIBE...</h2>
+                                                <p style={{ color: '#fff', fontSize: 18 }}>Searching the digital universe for people who share your vibe.</p>
+                                            </>
+                                        )}
                                         {currentFact && (
                                             <div className="fun-fact" style={{ marginTop: 24, color: '#fff', fontStyle: 'italic', fontSize: 16, background: 'rgba(0,183,255,0.09)', borderRadius: 16, padding: '1rem 1.5rem', boxShadow: '0 0 12px #00b7ff33' }}>
                                                 <p>💡 <em>{currentFact}</em></p>

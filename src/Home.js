@@ -466,6 +466,42 @@ export default function Homepage() {
     setShowInterestModal(true);
   };
 
+  const handleRandomMatch = async () => {
+    let username = localStorage.getItem("username");
+    if (!username || username.startsWith("Guest")) {
+      const { value: inputName } = await Swal.fire({
+        title: 'Enter your username',
+        input: 'text',
+        inputLabel: 'Username',
+        inputPlaceholder: 'Type your name here',
+        confirmButtonColor: '#00d8ff',
+        background: 'rgba(10, 20, 30, 0.95)',
+        color: '#00d8ff',
+        showCancelButton: true,
+        cancelButtonColor: '#ff4d4d',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'A username is required!';
+          }
+        }
+      });
+
+      if (inputName) {
+        username = inputName;
+        localStorage.setItem("username", username);
+      } else {
+        return; // User cancelled
+      }
+    }
+    navigate("/interest-chat", {
+      state: {
+        username: username,
+        interests: ['random'],
+        isRandom: true
+      },
+    });
+  };
+
   const toggleModalInterest = (interest) => {
     setModalInterests((prev) =>
       prev.includes(interest)
@@ -1829,7 +1865,12 @@ export default function Homepage() {
               <p className="interest-chat-description">
                 Don't just talk, connect. Vibester's interest-based matching lets you skip the small talk and dive deep into conversations that excite you. Whether it's the latest in tech, a passion for travel, or a love for classic movies, you'll find someone who gets it.
               </p>
-              <button className="engage-button" onClick={handleStartConnecting}>Start Connecting</button>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="engage-button" onClick={handleStartConnecting}>Start Connecting</button>
+                <button className="engage-button" onClick={handleRandomMatch} style={{ background: 'linear-gradient(90deg, #ff00de, #b700ff)', boxShadow: '0 0 18px #ff00de99' }}>
+                  Surprise Me 🎲
+                </button>
+              </div>
             </motion.div>
           </div>
         </section>
