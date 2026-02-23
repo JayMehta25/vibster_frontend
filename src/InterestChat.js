@@ -62,7 +62,7 @@ const InterestChat = () => {
     const [showCompatibility, setShowCompatibility] = useState(false);
     const [compatibilityResult, setCompatibilityResult] = useState(null);
     const [compatibilityLoading, setCompatibilityLoading] = useState(false);
-    const [showVideo, setShowVideo] = useState(false);
+    const [showVideo, setShowVideo] = useState(true); // Video always visible by default
     const [geminiStatus, setGeminiStatus] = useState('checking'); // 'checking', 'connected', 'disconnected'
 
 

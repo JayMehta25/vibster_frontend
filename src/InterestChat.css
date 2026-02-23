@@ -660,15 +660,17 @@
 .embedded-video-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
     padding: 10px;
     border-right: 1px solid rgba(0, 183, 255, 0.2);
-    width: 240px;
-    min-width: 240px;
+    width: 260px;
+    min-width: 260px;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .embedded-header {
@@ -676,11 +678,12 @@
     justify-content: space-between;
     align-items: center;
     color: #00d8ff;
+    flex-shrink: 0;
 }
 
 .embedded-header h4 {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: bold;
 }
 
@@ -692,27 +695,41 @@
     font-size: 1.2rem;
 }
 
+.all-videos-grid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
 .video-wrapper {
     position: relative;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    background: #000;
+    background: #0d1117;
+    min-height: 100px;
+    flex-shrink: 0;
 }
 
 .video-wrapper.local {
     border: 2px solid #00d8ff;
+    box-shadow: 0 0 12px rgba(0, 216, 255, 0.2);
 }
 
 .video-wrapper.remote {
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .video-element {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
     aspect-ratio: 4/3;
     object-fit: cover;
+    background: #0d1117;
 }
 
 .video-element.local-mirror {
@@ -721,61 +738,72 @@
 
 .video-label {
     position: absolute;
-    bottom: 5px;
-    left: 5px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 2px 6px;
-    border-radius: 4px;
+    bottom: 6px;
+    left: 6px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 2px 8px;
+    border-radius: 6px;
     font-size: 0.7rem;
     color: white;
-}
-
-.remote-videos-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    backdrop-filter: blur(4px);
+    z-index: 2;
 }
 
 .waiting-message {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.8rem;
     text-align: center;
-    margin-top: 20px;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .embedded-controls {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: auto;
+    flex-shrink: 0;
+    padding: 4px 0;
 }
 
 .control-btn {
-    background: rgba(0, 216, 255, 0.2);
+    background: rgba(0, 216, 255, 0.15);
     border: 1px solid rgba(0, 216, 255, 0.3);
     color: white;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    font-size: 1rem;
 }
 
 .control-btn:hover {
-    background: rgba(0, 216, 255, 0.4);
+    background: rgba(0, 216, 255, 0.35);
+    transform: scale(1.05);
 }
 
 .control-btn.active {
-    background: #ff4d4d;
+    background: rgba(255, 77, 77, 0.8);
     border-color: #ff4d4d;
 }
 
-/* --- Mobile Responsiveness (Dynamic Video Height) --- */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Mobile Responsiveness --- */
 @media (max-width: 768px) {
     .interest-chat-wrapper {
         flex-direction: column !important;
@@ -790,7 +818,6 @@
         left: 0 !important;
         width: 100%;
         height: 120px !important;
-        /* Increased significantly to clear status icons */
         z-index: 2000;
         background-color: #0b0c10 !important;
         border-bottom: 2px solid #45a29e;
@@ -801,50 +828,53 @@
         justify-content: center !important;
     }
 
-    /* 2. Video: Starts after Header */
+    /* 2. Video: Horizontal strip below header */
     .embedded-video-container {
         width: 100% !important;
         min-width: 0 !important;
         margin-top: 115px !important;
-        /* Reduced to move chat up */
-        height: 100px !important;
-        /* Further reduced height to pull chat UP */
+        height: 130px !important;
+        min-height: 130px !important;
         border-right: none;
         border-bottom: 1px solid rgba(0, 183, 255, 0.2);
-
         display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 5px;
-        gap: 8px;
+        flex-direction: column;
+        padding: 4px 6px;
+        gap: 4px;
         z-index: 1000;
         box-sizing: border-box;
-        align-items: center;
         background: rgba(0, 0, 0, 0.7);
-        /* Slightly more transparent */
+        backdrop-filter: blur(8px);
+    }
+
+    .all-videos-grid {
+        flex: 1;
+        display: flex;
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 6px;
+        min-height: 0;
+        align-items: stretch;
+        -webkit-overflow-scrolling: touch;
     }
 
     .video-wrapper {
         height: 100% !important;
-        /* Utilize full container height */
         width: auto !important;
+        min-width: 110px;
+        min-height: 80px !important;
         aspect-ratio: 4/3;
         flex-shrink: 0;
-        border-radius: 6px;
+        border-radius: 8px;
     }
 
     .video-element {
-        height: 100% !important;
         width: 100% !important;
+        height: 100% !important;
+        aspect-ratio: unset;
         object-fit: cover !important;
-    }
-
-    .remote-videos-list {
-        display: flex;
-        flex-direction: row;
-        height: 100%;
-        gap: 8px;
     }
 
     .embedded-header {
@@ -853,32 +883,38 @@
 
     .embedded-controls {
         position: absolute;
-        bottom: 5px;
-        right: 10px;
+        bottom: 4px;
+        right: 8px;
         flex-direction: row;
         gap: 5px;
         z-index: 10;
         margin: 0;
-        transform: none;
+        padding: 0;
     }
 
     .control-btn {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(4px);
+    }
+
+    .waiting-message {
+        flex-direction: row;
+        padding: 10px;
+        font-size: 0.75rem;
+        gap: 6px;
     }
 
     /* 3. Chat: Fills remaining space */
     .interest-chat-main {
         flex: 1;
-        /* Take remaining height */
         height: auto !important;
         position: relative;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden;
-        /* Contain inner scrolls */
         padding-top: 0 !important;
         background: #1a1a1d;
         margin-top: 0 !important;
@@ -887,13 +923,9 @@
     .interest-chat-messages {
         flex: 1;
         overflow-y: auto;
-        /* Enable scrolling */
         padding: 10px;
         margin-top: 0 !important;
         padding-bottom: 80px;
-        /* Space for footer */
-
-        /* Reset absolute positioning */
         position: relative !important;
         top: auto !important;
         bottom: auto !important;
@@ -909,5 +941,24 @@
         padding: 10px 10px 20px 10px !important;
         z-index: 1500;
         box-sizing: border-box;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 400px) {
+    .embedded-video-container {
+        height: 110px !important;
+        min-height: 110px !important;
+    }
+
+    .video-wrapper {
+        min-width: 90px;
+        min-height: 70px !important;
+    }
+
+    .control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
     }
 }
