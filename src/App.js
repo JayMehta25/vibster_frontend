@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthPage from "./AuthPage";
@@ -41,6 +42,7 @@ function App() {
         </AuthProvider>
       </Router>
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
