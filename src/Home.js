@@ -555,6 +555,9 @@ export default function Homepage() {
 
     socket.on('totalOnlineUsers', handleUserCount);
 
+    // Request current count immediately on page load
+    socket.emit('getOnlineCount');
+
     return () => {
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);

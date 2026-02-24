@@ -641,8 +641,7 @@ const InterestChat = () => {
                                     className="interest-chat-header d-flex flex-column px-4 py-3"
                                     style={{
                                         backdropFilter: 'blur(10px)',
-                                        background: geminiStatus === 'connected' ? 'rgba(40, 167, 69, 0.25)' : (geminiStatus === 'disconnected' ? 'rgba(220, 53, 69, 0.25)' : 'rgba(0, 183, 255, 0.08)'),
-                                        transition: 'background 0.5s ease',
+                                        background: 'rgba(0, 183, 255, 0.08)',
                                         borderBottom: '1.5px solid #00b7ff55',
                                         zIndex: 1000,
                                         position: 'absolute',
@@ -736,15 +735,7 @@ const InterestChat = () => {
                                                     {userCount} Online
                                                 </div>
                                             </div>
-                                            <div style={{
-                                                fontSize: '11px',
-                                                fontWeight: 'bold',
-                                                color: geminiStatus === 'connected' ? '#28a745' : (geminiStatus === 'disconnected' ? '#dc3545' : '#00b7ff'),
-                                                textShadow: '0 0 5px rgba(0,0,0,0.5)',
-                                                marginLeft: '4px'
-                                            }}>
-                                                {geminiStatus === 'connected' ? 'GEMINI: ONLINE' : (geminiStatus === 'disconnected' ? 'GEMINI: OFFLINE' : 'GEMINI: CHECKING...')}
-                                            </div>
+
                                         </div>
 
                                         {/* Right Section: Buttons */}
