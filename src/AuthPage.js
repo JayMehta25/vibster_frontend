@@ -14,7 +14,7 @@ const AuthPage = () => {
 
     const navigate = useNavigate()
     const location = useLocation()
-    const { signIn, signUp, getProfile, user } = useAuth()
+    const { signIn, signUp, getProfile, user, loading } = useAuth()
 
     // Get the name from tutorial if passed
     const tutorialName = location.state?.name || localStorage.getItem('username') || ''
@@ -50,6 +50,14 @@ const AuthPage = () => {
             fetchProfile();
         }
     }, [user, getProfile, tutorialName, username]);
+
+    // If a user is already authenticated (e.g. after email confirmation),
+    // automatically send them to the main chat landing page.
+    useEffect(() => {
+        if (!loading && user) {
+            navigate('/chatlanding', { replace: true })
+        }
+    }, [loading, user, navigate])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -88,7 +96,7 @@ const AuthPage = () => {
                         background: 'rgba(10, 20, 30, 0.95)',
                         color: '#fff'
                     })
-                    navigate('/ChatLanding')
+                    navigate('/chatlanding')
                 }
             } else {
                 // Signup

@@ -16,6 +16,9 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true)
     const [session, setSession] = useState(null)
 
+    const authRedirectUrl =
+        process.env.REACT_APP_AUTH_REDIRECT_URL || `${window.location.origin}/auth`
+
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -40,6 +43,7 @@ export const AuthProvider = ({ children }) => {
                 email,
                 password,
                 options: {
+                    emailRedirectTo: authRedirectUrl,
                     data: {
                         username: username,
                     }
