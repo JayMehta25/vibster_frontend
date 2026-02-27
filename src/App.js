@@ -15,6 +15,7 @@ import UserReviewsPage from './UserReviewsPage';
 import VoiceCall from "./components/VoiceCall";
 import VideoCall from "./components/VideoCall";
 import FeaturesGrid from './components/FeaturesGrid';
+import UserDashboard from "./UserDashboard";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="/user-reviews" element={<ProtectedRoute><UserReviewsPage /></ProtectedRoute>} />
             <Route path="/voicecall" element={<ProtectedRoute><VoiceCall /></ProtectedRoute>} />
             <Route path="/videocall" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
+            <Route path="/userdashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
           </Routes>
         </AuthProvider>
       </Router>

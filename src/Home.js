@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import Chatbot from "./Chatbot"; // Import the chatbot
-import Galaxy from './components/Galaxy'; // Import the Galaxy background
 import { useAuth } from './contexts/AuthContext';
 import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from 'sweetalert2';
@@ -335,12 +334,6 @@ export default function Homepage() {
 
   // Functionalities info style with moving gradient text
 
-  // Logout handler for navigation bar
-  const handleLogout = () => {
-    localStorage.removeItem("username");
-    navigate("/");
-  };
-
   // Handler for interest chip click
   const handleInterestClick = (interest) => {
     setSelectedInterests((prev) => {
@@ -352,36 +345,6 @@ export default function Homepage() {
     });
     // Optionally, navigate to a random room for that interest
     // navigate(`/chatmain?interest=${interest}`);
-  };
-
-  // Handler for create room
-  const handleCreateRoom = () => {
-    // If user is authenticated, go straight to ChatLanding
-    if (user) {
-      navigate("/ChatLanding");
-      return;
-    }
-
-    // If not authenticated, show the alert
-    Swal.fire({
-      title: 'ACCOUNT REQUIRED',
-      text: 'Please sign in to access premium chat features.',
-      icon: 'warning',
-      background: 'rgba(10, 20, 30, 0.95)',
-      color: '#fff',
-      confirmButtonColor: '#00d8ff',
-      showClass: {
-        popup: 'animate__animated animate__rubberBand'
-      },
-      hideClass: {
-        popup: 'animate__animated animate__fadeOutUp'
-      },
-      showConfirmButton: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/auth");
-      }
-    });
   };
 
   // Handler for join room
@@ -761,6 +724,21 @@ export default function Homepage() {
             color: #000;
             box-shadow: 0 0 15px #00d8ff, 0 0 25px #00d8ff;
           }
+          
+          .nav-button.signup-button {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(255, 79, 216, 0.95));
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            text-shadow: none;
+            box-shadow: 0 0 18px rgba(124, 58, 237, 0.25), 0 0 18px rgba(255, 79, 216, 0.22);
+          }
+
+          .nav-button.signup-button:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 1), rgba(255, 79, 216, 1));
+            color: #fff;
+            box-shadow: 0 0 26px rgba(124, 58, 237, 0.35), 0 0 26px rgba(255, 79, 216, 0.32);
+            transform: translateY(-1px);
+          }
           .logout-button {
             border-color: #ff00de;
             color: #ff00de;
@@ -866,6 +844,20 @@ export default function Homepage() {
             background-color: #00d8ff;
             color: #000;
             box-shadow: 0 0 15px #00d8ff;
+          }
+
+          .mobile-menu-item.signup {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(255, 79, 216, 0.95));
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            text-shadow: none;
+            box-shadow: 0 0 16px rgba(124, 58, 237, 0.22), 0 0 16px rgba(255, 79, 216, 0.20);
+          }
+
+          .mobile-menu-item.signup:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 1), rgba(255, 79, 216, 1));
+            color: #fff;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.32), 0 0 20px rgba(255, 79, 216, 0.30);
           }
 
           .mobile-menu-item.logout {
@@ -1701,16 +1693,6 @@ export default function Homepage() {
       </style>
 
       <div className="layout-container">
-        <div className="particles-background">
-          <Galaxy
-            mouseRepulsion={true}
-            mouseInteraction={true}
-            density={0.3}
-            glowIntensity={0.5}
-            saturation={0.0}
-            hueShift={0}
-          />
-        </div>
         {/* ---------- Navigation Bar ---------- */}
         <nav className="navbar navbar-expand-lg">
           <div className="container-fluid">
@@ -1734,15 +1716,21 @@ export default function Homepage() {
                 Features
               </button>
               <button className="nav-button" onClick={handleAboutUs}>About Us</button>
-              <button className="nav-button" onClick={handleCreateRoom}>
-                Create Room
-              </button>
-              <button className="nav-button" onClick={() => navigate("/auth")}>
-                Sign In
-              </button>
-              <button className="logout-button" onClick={handleLogout} title="Logout">
-                🚪
-              </button>
+              {user ? (
+                <button
+                  className="nav-button signup-button"
+                  onClick={() => navigate("/userdashboard")}
+                >
+                  Dashboard
+                </button>
+              ) : (
+                <button
+                  className="nav-button signup-button"
+                  onClick={() => navigate("/auth", { state: { authMode: "signin", redirectTo: "/userdashboard" } })}
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         </nav>
@@ -1755,15 +1743,21 @@ export default function Homepage() {
           <button className="mobile-menu-item" onClick={() => { handleAboutUs(); setMobileMenuOpen(false); }}>
             About Us
           </button>
-          <button className="mobile-menu-item" onClick={() => { handleCreateRoom(); setMobileMenuOpen(false); }}>
-            Create Room
-          </button>
-          <button className="mobile-menu-item" onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }}>
-            Sign In
-          </button>
-          <button className="mobile-menu-item logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
-            Logout 🚪
-          </button>
+          {user ? (
+            <button
+              className="mobile-menu-item signup"
+              onClick={() => { navigate("/userdashboard"); setMobileMenuOpen(false); }}
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              className="mobile-menu-item signup"
+              onClick={() => { navigate("/auth", { state: { authMode: "signin", redirectTo: "/userdashboard" } }); setMobileMenuOpen(false); }}
+            >
+              Sign In
+            </button>
+          )}
         </div>
 
         {/* ---------- Modern Hero Section ---------- */}

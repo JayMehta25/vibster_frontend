@@ -7,6 +7,8 @@ import Globe from 'react-globe.gl';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import Grainient from './Grainient';
+import Swal from 'sweetalert2';
+import { useAuth } from './contexts/AuthContext';
 // Fallback to localhost if ngrok is down, or use the current host if browsing via ngrok
 
 
@@ -16,6 +18,7 @@ const InterestChat = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { username: navUsername, interests } = location.state || {};
+    const { user } = useAuth();
 
     const savedChatState = useMemo(() => {
         if (typeof window === 'undefined') return null;
@@ -64,6 +67,130 @@ const InterestChat = () => {
     const [compatibilityLoading, setCompatibilityLoading] = useState(false);
     const [showVideo, setShowVideo] = useState(true); // Video always visible by default
     const [geminiStatus, setGeminiStatus] = useState('checking'); // 'checking', 'connected', 'disconnected'
+
+    const otherUsername = useMemo(() => {
+        const other = messages.find(
+            (m) =>
+                m &&
+                typeof m.username === 'string' &&
+                m.username.trim() &&
+                m.username !== username
+        );
+        return other?.username || '';
+    }, [messages, username]);
+
+    const friendStorageKey = user ? `vibester:favorites:${user.id}` : null;
+    const isAlreadySaved = useMemo(() => {
+        if (!friendStorageKey || !otherUsername) return false;
+        try {
+            const raw = localStorage.getItem(friendStorageKey);
+            if (!raw) return false;
+            const list = JSON.parse(raw);
+            if (!Array.isArray(list)) return false;
+            return list.some((x) => x?.username === otherUsername);
+        } catch {
+            return false;
+        }
+    }, [friendStorageKey, otherUsername]);
+
+    const handleAddFriend = async () => {
+        if (!otherUsername) {
+            await Swal.fire({
+                title: 'Not yet!',
+                text: 'Send/receive at least 1 message first, then you can add them.',
+                icon: 'info',
+                background: 'rgba(10, 20, 30, 0.95)',
+                color: '#fff',
+                confirmButtonColor: '#00d8ff',
+            });
+            return;
+        }
+
+        // Guest flow: InterestChat stays open, but saving requires auth
+        if (!user) {
+            try {
+                sessionStorage.setItem(
+                    'pendingAddFriend',
+                    JSON.stringify({
+                        otherUsername,
+                        assignedRoom,
+                        at: Date.now(),
+                    })
+                );
+            } catch {
+                // ignore storage failures
+            }
+
+            const res = await Swal.fire({
+                title: 'Sign up to add friends',
+                text: 'Create an account to save this person to your Dashboard.',
+                icon: 'warning',
+                background: 'rgba(10, 20, 30, 0.95)',
+                color: '#fff',
+                confirmButtonColor: '#00d8ff',
+                showCancelButton: true,
+                confirmButtonText: 'Sign Up',
+                cancelButtonText: 'Not now',
+            });
+
+            if (res.isConfirmed) {
+                navigate('/auth', { state: { authMode: 'signup' } });
+            }
+            return;
+        }
+
+        if (isAlreadySaved) {
+            await Swal.fire({
+                title: 'Already saved',
+                text: `${otherUsername} is already in your saved connections.`,
+                icon: 'success',
+                background: 'rgba(10, 20, 30, 0.95)',
+                color: '#fff',
+                confirmButtonColor: '#00d8ff',
+            });
+            return;
+        }
+
+        try {
+            const raw = localStorage.getItem(friendStorageKey) || '[]';
+            const list = JSON.parse(raw);
+            const next = Array.isArray(list) ? list : [];
+            next.push({
+                username: otherUsername,
+                source: 'interest-chat',
+                room: assignedRoom,
+                addedAt: new Date().toISOString(),
+            });
+            localStorage.setItem(friendStorageKey, JSON.stringify(next));
+        } catch {
+            // If storage fails, we still show the UI success so the flow isn't broken.
+        }
+
+        // Save to Supabase friendships table
+        try {
+            const { supabase } = await import('./supabaseClient');
+            await supabase.from('friendships').upsert(
+                {
+                    user_id: user.id,
+                    friend_username: otherUsername,
+                    added_from: 'interest-chat',
+                },
+                { onConflict: 'user_id,friend_username' }
+            );
+        } catch (dbErr) {
+            console.warn('Could not save friend to DB:', dbErr);
+        }
+
+        await Swal.fire({
+            title: 'Saved!',
+            text: `${otherUsername} was added to your Dashboard.`,
+            icon: 'success',
+            timer: 1300,
+            showConfirmButton: false,
+            background: 'rgba(10, 20, 30, 0.95)',
+            color: '#fff',
+        });
+    };
 
 
     useEffect(() => {
@@ -765,6 +892,30 @@ const InterestChat = () => {
                                                             <span role="img" aria-label="video">🎥</span> <span className="d-none d-sm-inline">{showVideo ? 'Hide Video' : 'Video Call'}</span>
                                                         </button>
                                                     </>
+                                                    <button
+                                                        onClick={handleAddFriend}
+                                                        disabled={!otherUsername || (user && isAlreadySaved)}
+                                                        style={{
+                                                            background: (user && isAlreadySaved) ? 'rgba(255,255,255,0.10)' : 'linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(255, 79, 216, 0.95))',
+                                                            color: '#fff',
+                                                            border: 'none',
+                                                            borderRadius: 16,
+                                                            padding: '0.5rem 1rem',
+                                                            fontWeight: 800,
+                                                            fontSize: 14,
+                                                            boxShadow: '0 0 14px rgba(124, 58, 237, 0.22), 0 0 14px rgba(255, 79, 216, 0.18)',
+                                                            cursor: (!otherUsername || (user && isAlreadySaved)) ? 'not-allowed' : 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 6,
+                                                            height: 40,
+                                                            opacity: (!otherUsername || (user && isAlreadySaved)) ? 0.65 : 1,
+                                                        }}
+                                                        title={otherUsername ? (user ? (isAlreadySaved ? 'Already saved' : `Add ${otherUsername}`) : 'Sign up to add friends') : 'Send a message first'}
+                                                    >
+                                                        <span role="img" aria-label="add-friend">➕</span>{' '}
+                                                        <span className="d-none d-sm-inline">{(user && isAlreadySaved) ? 'Saved' : 'Add Friend'}</span>
+                                                    </button>
                                                 </>
                                             )}
                                             <button

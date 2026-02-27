@@ -16,6 +16,14 @@ const AuthPage = () => {
     const location = useLocation()
     const { signIn, signUp, getProfile, user, loading: authLoading } = useAuth()
 
+    // Allow other pages to open Auth directly in signup mode
+    useEffect(() => {
+        const mode = location.state?.authMode
+        if (mode === 'signup') setIsLogin(false)
+        if (mode === 'login' || mode === 'signin') setIsLogin(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.state?.authMode])
+
     // Get the name from tutorial if passed
     const tutorialName = location.state?.name || localStorage.getItem('username') || ''
 
@@ -55,7 +63,7 @@ const AuthPage = () => {
     // automatically send them to the main chat landing page.
     useEffect(() => {
         if (!authLoading && user) {
-            navigate('/chatlanding', { replace: true })
+            navigate('/userdashboard', { replace: true })
         }
     }, [authLoading, user, navigate])
 
@@ -96,7 +104,7 @@ const AuthPage = () => {
                         background: 'rgba(10, 20, 30, 0.95)',
                         color: '#fff'
                     })
-                    navigate('/chatlanding')
+                    navigate('/userdashboard')
                 }
             } else {
                 // Signup

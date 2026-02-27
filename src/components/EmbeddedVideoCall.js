@@ -29,6 +29,7 @@ const iceServers = [
 function EmbeddedVideoCall({ roomCode, username, onClose }) {
     const [joined, setJoined] = useState(false);
     const [userIds, setUserIds] = useState([]);
+    const [peerNames, setPeerNames] = useState({});
     const [remoteStreams, setRemoteStreams] = useState({});
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
@@ -144,6 +145,7 @@ function EmbeddedVideoCall({ roomCode, username, onClose }) {
             setUserIds([socket.id, ...newPeers]);
             // We are the new joiner, so we initiate offers to all existing peers
             newPeers.forEach(id => createPeerConnection(id, true));
+            newPeers.forEach(id => resolvePeerName(id));
         });
 
         socket.on('new-peer', ({ peerId }) => {
@@ -152,6 +154,7 @@ function EmbeddedVideoCall({ roomCode, username, onClose }) {
             setUserIds(prev => prev.includes(peerId) ? prev : [...prev, peerId]);
             // Existing peer, new user joined - don't initiate, wait for their offer
             createPeerConnection(peerId, false);
+            resolvePeerName(peerId);
         });
 
         socket.on('peer-disconnected', (id) => {
@@ -209,6 +212,19 @@ function EmbeddedVideoCall({ roomCode, username, onClose }) {
             } catch (err) {
                 console.error('[Video] Signal handling error:', err.message);
             }
+        });
+    };
+
+    const resolvePeerName = (peerSocketId) => {
+        if (!peerSocketId) return;
+        setPeerNames((prev) => {
+            if (prev[peerSocketId]) return prev;
+            socket.emit('getUsername', { socketId: peerSocketId }, (res) => {
+                const resolved = res?.username;
+                if (!resolved) return;
+                setPeerNames((p) => ({ ...p, [peerSocketId]: resolved }));
+            });
+            return prev;
         });
     };
 
@@ -381,7 +397,11 @@ function EmbeddedVideoCall({ roomCode, username, onClose }) {
 
                 {/* Remote Videos */}
                 {remoteUserIds.map(id => (
-                    <EmbeddedRemoteVideo key={id} stream={remoteStreams[id]} peerId={id.slice(0, 6)} />
+                    <EmbeddedRemoteVideo
+                        key={id}
+                        stream={remoteStreams[id]}
+                        displayName={peerNames[id] || 'User'}
+                    />
                 ))}
 
                 {remoteUserIds.length === 0 && (
@@ -405,14 +425,14 @@ function EmbeddedVideoCall({ roomCode, username, onClose }) {
     );
 }
 
-function EmbeddedRemoteVideo({ stream, peerId }) {
+function EmbeddedRemoteVideo({ stream, displayName }) {
     const ref = useRef(null);
     const [playing, setPlaying] = useState(false);
     const [hasVideo, setHasVideo] = useState(true);
 
     useEffect(() => {
         if (ref.current && stream) {
-            console.log(`[RemoteVideo] Attaching stream for ${peerId}. Tracks: ${stream.getTracks().map(t => t.kind).join(', ')}`);
+            console.log(`[RemoteVideo] Attaching stream for ${displayName}. Tracks: ${stream.getTracks().map(t => t.kind).join(', ')}`);
             ref.current.srcObject = stream;
 
             // Check if stream has video track
@@ -423,11 +443,11 @@ function EmbeddedRemoteVideo({ stream, peerId }) {
             ref.current.muted = false;
             ref.current.play()
                 .then(() => {
-                    console.log(`[RemoteVideo] Playing for ${peerId}`);
+                    console.log(`[RemoteVideo] Playing for ${displayName}`);
                     setPlaying(true);
                 })
                 .catch(e => {
-                    console.warn(`[RemoteVideo] Autoplay failed for ${peerId}, trying muted:`, e.message);
+                    console.warn(`[RemoteVideo] Autoplay failed for ${displayName}, trying muted:`, e.message);
                     // Fallback: muted autoplay (browser policy)
                     if (ref.current) {
                         ref.current.muted = true;
@@ -437,7 +457,7 @@ function EmbeddedRemoteVideo({ stream, peerId }) {
                     }
                 });
         }
-    }, [stream, peerId]);
+    }, [stream, displayName]);
 
     // Listen for track changes
     useEffect(() => {
@@ -491,7 +511,7 @@ function EmbeddedRemoteVideo({ stream, peerId }) {
                     <span style={{ color: '#00b7ff', fontSize: 12 }}>Connecting...</span>
                 </div>
             )}
-            <div className="video-label">{peerId}</div>
+            <div className="video-label">{displayName}</div>
         </div>
     );
 }

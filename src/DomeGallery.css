@@ -1,0 +1,295 @@
+.sphere-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  --radius: 520px;
+  --viewer-pad: 72px;
+  --circ: calc(var(--radius) * 3.14);
+  --rot-y: calc((360deg / var(--segments-x)) / 2);
+  --rot-x: calc((360deg / var(--segments-y)) / 2);
+  --item-width: calc(var(--circ) / var(--segments-x));
+  --item-height: calc(var(--circ) / var(--segments-y));
+}
+
+.sphere-root * {
+  box-sizing: border-box;
+}
+
+.sphere,
+.item,
+.item__image {
+  transform-style: preserve-3d;
+}
+
+main.sphere-main {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  perspective: calc(var(--radius) * 2);
+  perspective-origin: 50% 50%;
+  contain: layout paint size;
+}
+
+.sphere {
+  transform: translateZ(calc(var(--radius) * -1));
+  will-change: transform;
+}
+
+.overlay,
+.overlay--blur {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.overlay {
+  background-image: radial-gradient(rgba(235, 235, 235, 0) 65%, var(--overlay-blur-color, #060010) 100%);
+}
+
+.overlay--blur {
+  -webkit-mask-image: radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, #060010) 90%);
+  mask-image: radial-gradient(rgba(235, 235, 235, 0) 70%, var(--overlay-blur-color, #060010) 90%);
+  backdrop-filter: blur(3px);
+}
+
+.item {
+  width: calc(var(--item-width) * var(--item-size-x));
+  height: calc(var(--item-height) * var(--item-size-y));
+  position: absolute;
+  top: -999px;
+  bottom: -999px;
+  left: -999px;
+  right: -999px;
+  margin: auto;
+  transform-origin: 50% 50%;
+  backface-visibility: visible;
+  transition: transform 300ms;
+  transform: rotateY(calc(var(--rot-y) * (var(--offset-x) + ((var(--item-size-x) - 1) / 2)) + var(--rot-y-delta, 0deg))) rotateX(calc(var(--rot-x) * (var(--offset-y) - ((var(--item-size-y) - 1) / 2)) + var(--rot-x-delta, 0deg))) translateZ(var(--radius));
+}
+
+.item__image {
+  position: absolute;
+  display: block;
+  inset: 10px;
+  border-radius: var(--tile-radius, 12px);
+  background: transparent;
+  overflow: hidden;
+  backface-visibility: visible;
+  transition: transform 300ms;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  pointer-events: auto;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.item__image:focus {
+  outline: none;
+}
+
+.item__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  backface-visibility: hidden;
+  filter: var(--image-filter, none);
+}
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--viewer-pad);
+}
+
+.viewer .frame {
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--enlarge-radius, 32px);
+  display: flex;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .viewer .frame {
+    height: auto;
+    width: 100%;
+  }
+}
+
+.viewer .scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 500ms ease;
+  backdrop-filter: blur(3px);
+}
+
+.sphere-root[data-enlarging='true'] .viewer .scrim {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.viewer .enlarge {
+  position: absolute;
+  z-index: 30;
+  border-radius: var(--enlarge-radius, 32px);
+  overflow: hidden;
+  transition:
+    transform 500ms ease,
+    opacity 500ms ease;
+  transform-origin: top left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.viewer .enlarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--image-filter, none);
+}
+
+.sphere-root .enlarge-closing img {
+  filter: var(--image-filter, none);
+}
+
+.edge-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--overlay-blur-color, #060010));
+}
+
+.edge-fade--top {
+  top: 0;
+  transform: rotate(180deg);
+}
+
+.edge-fade--bottom {
+  bottom: 0;
+}
+
+body.dg-scroll-lock {
+  overflow: hidden;
+}
+
+/* ---- Person Card Styles ---- */
+
+.item__image--empty {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.person-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  position: relative;
+}
+
+.person-card:hover {
+  border-color: rgba(0, 183, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 183, 255, 0.15);
+}
+
+/* Activity status dot — top right of card */
+.activity-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.activity-dot--online {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e, 0 0 16px rgba(34, 197, 94, 0.4);
+  animation: pulse-online 2s ease-in-out infinite;
+}
+
+.activity-dot--offline {
+  background: #6b7280;
+  box-shadow: none;
+}
+
+@keyframes pulse-online {
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px #22c55e, 0 0 16px rgba(34, 197, 94, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 12px #22c55e, 0 0 24px rgba(34, 197, 94, 0.6);
+  }
+}
+
+/* Initials avatar circle */
+.person-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.person-avatar__initials {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+/* Username label */
+.person-username {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  user-select: none;
+}

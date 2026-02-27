@@ -61,7 +61,7 @@ function VideoCall() {
     
     // Join room immediately to speed up connection
     // We're using the same roomCode from InterestChat to maintain the link
-    socket.emit('join', roomCode);
+    socket.emit('join', { room: roomCode, username: username || 'Anonymous' });
     setJoined(true);
     setUserIds([socket.id]);
     setParticipantCount(1);
