@@ -25,13 +25,22 @@ const UserDashboard = () => {
 
   const [dbFriends, setDbFriends] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [showFriendsPanel, setShowFriendsPanel] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [showChatsPanel, setShowChatsPanel] = useState(false);
+  const [chatPreviews, setChatPreviews] = useState([]);
+  const [activeDmFriend, setActiveDmFriend] = useState(null);
+
+  const myUsername = user?.user_metadata?.username || localStorage.getItem('username');
 
   // Refs for socket listeners to avoid stale data/loops
   const dbFriendsRef = useRef([]);
   const requestsRef = useRef([]);
+  const activeDmFriendRef = useRef(null);
 
   useEffect(() => { dbFriendsRef.current = dbFriends; }, [dbFriends]);
   useEffect(() => { requestsRef.current = requests; }, [requests]);
+  useEffect(() => { activeDmFriendRef.current = activeDmFriend; }, [activeDmFriend]);
 
   // Fetch real friends from Supabase once on mount/user change
   useEffect(() => {
@@ -91,7 +100,6 @@ const UserDashboard = () => {
       });
 
     // Listen for real-time friend requests
-    const myUsername = user.user_metadata?.username || localStorage.getItem('username');
     if (myUsername) {
       socket.emit('register', myUsername);
     }
@@ -115,30 +123,62 @@ const UserDashboard = () => {
       // Only add if not already a friend or already in requests
       if (!dbFriendsRef.current.some(f => f.username === from) && !requestsRef.current.some(r => r.username === from)) {
         setRequests(prev => [...prev, { username: from }]);
-        // Optional: show a small toast/alert
+        Swal.fire({
+          title: 'New Friend Request',
+          text: `${from} added you! Check your connections.`,
+          toast: true,
+          position: 'top-end',
+          timer: 4000,
+          showConfirmButton: false,
+          background: 'rgba(50, 10, 80, 0.95)',
+          color: '#fff'
+        });
       }
     };
 
     socket.on('incomingFriendRequest', handleIncomingRequest);
 
+    const handleIncomingMessage = (msg) => {
+      setChatPreviews((prev) => {
+        const existing = prev.find(p => p.username === msg.from);
+        const newEntry = {
+          username: msg.from,
+          lastMessage: msg.content,
+          time: 'just now',
+          unread: (activeDmFriendRef.current?.username === msg.from) ? 0 : (existing ? (existing.unread || 0) + 1 : 1),
+          isOnline: true
+        };
+        const filtered = prev.filter(p => p.username !== msg.from);
+        return [newEntry, ...filtered];
+      });
+      // Also show a toast if not looking at this chat
+      if (activeDmFriendRef.current?.username !== msg.from) {
+        Swal.fire({
+          title: 'New Message',
+          text: `${msg.from}: ${msg.content.slice(0, 30)}${msg.content.length > 30 ? '...' : ''}`,
+          toast: true,
+          position: 'bottom-end',
+          timer: 3000,
+          showConfirmButton: false,
+          background: 'rgba(8,12,30,0.95)',
+          color: '#fff'
+        });
+      }
+    };
+    socket.on('incomingDashboardMessage', handleIncomingMessage);
+
     return () => {
       socket.off('incomingFriendRequest', handleIncomingRequest);
+      socket.off('incomingDashboardMessage', handleIncomingMessage);
       socket.off('onlineUsersList', handleOnlineUsers);
       clearInterval(statusInterval);
     };
-  }, [user]); // Removed dbFriends dependency
+  }, [user]);
 
-  // Merge real friends with sample users to always fill dome
+
+  // Merge real friends for dome - REMOVED SAMPLE USERS
   const people = useMemo(() => {
-    const maxCards = 8;
-    const combined = [...dbFriends];
-    for (const sample of SAMPLE_PEOPLE) {
-      if (combined.length >= maxCards) break;
-      if (!combined.some((p) => p.username === sample.username)) {
-        combined.push(sample);
-      }
-    }
-    return combined;
+    return dbFriends;
   }, [dbFriends]);
 
   const handleQuickMatch = () => {
@@ -152,11 +192,6 @@ const UserDashboard = () => {
     });
   };
 
-  const [showFriendsPanel, setShowFriendsPanel] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState(null);
-  const [showChatsPanel, setShowChatsPanel] = useState(false);
-  const [chatPreviews, setChatPreviews] = useState([]);
-  const [activeDmFriend, setActiveDmFriend] = useState(null);
 
   const LAST_MESSAGES_FALLBACK = [
     'Hey! How are you doing?',
@@ -186,25 +221,27 @@ const UserDashboard = () => {
     supabase
       .from('messages')
       .select('sender_username, receiver_username, content, sent_at')
-      .eq('sender_id', user.id)
+      .or(`sender_id.eq.${user.id},receiver_username.eq.${myUsername}`)
       .order('sent_at', { ascending: false })
-      .limit(200)
+      .limit(300)
       .then(({ data, error }) => {
         if (error) {
           console.debug('[Chats] messages fetch skipped:', error.code);
           setChatPreviews([]);
           return;
         }
-        // Build one preview per unique receiver — most recent message first
+        // Build one preview per unique participant
         const seen = new Map();
         (data || []).forEach((m) => {
-          if (m.receiver_username && !seen.has(m.receiver_username)) {
-            seen.set(m.receiver_username, m);
+          const otherPerson = m.sender_username === myUsername ? m.receiver_username : m.sender_username;
+          if (otherPerson && !seen.has(otherPerson)) {
+            seen.set(otherPerson, m);
           }
         });
         // Convert map to array, find matching person object for online status etc.
         const previews = Array.from(seen.values()).map((m) => {
-          const personObj = people.find((p) => p.username === m.receiver_username) || { username: m.receiver_username, isOnline: false };
+          const otherPerson = m.sender_username === myUsername ? m.receiver_username : m.sender_username;
+          const personObj = people.find((p) => p.username === otherPerson) || { username: otherPerson, isOnline: false };
           return {
             ...personObj,
             lastMessage: m.content,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import socket from './socket';
 
 const GRADIENTS = [
   ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
@@ -52,6 +53,25 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
       });
   }, [user, friend.username, myUsername]);
 
+  // Listen for real-time messages from this friend
+  useEffect(() => {
+    if (!friend?.username) return;
+
+    const handleIncoming = (msg) => {
+      if (msg.from === friend.username) {
+        setMessages((prev) => [...prev, {
+          id: 'socket-' + Date.now(),
+          sender_username: msg.from,
+          content: msg.content,
+          sent_at: msg.sent_at,
+        }]);
+      }
+    };
+
+    socket.on('incomingDashboardMessage', handleIncoming);
+    return () => socket.off('incomingDashboardMessage', handleIncoming);
+  }, [friend.username]);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -80,6 +100,9 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
 
     // Instantly notify parent to update chats panel preview
     onMessageSent?.(friend.username, text);
+
+    // Real-time notify via socket
+    socket.emit('dashboardMessage', { to: friend.username, from: myUsername, content: text });
 
     // Save to Supabase
     const { data, error } = await supabase.from('messages').insert({
