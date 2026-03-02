@@ -77,8 +77,27 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
-    const signIn = async (email, password) => {
+    const signIn = async (identifier, password) => {
         try {
+            let email = identifier
+
+            // Check if identifier is an email. Simple regex check.
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
+
+            if (!isEmail) {
+                // Treat as username, look up email in profiles
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('username', identifier)
+                    .single()
+
+                if (error || !data) {
+                    throw new Error('User not found')
+                }
+                email = data.email
+            }
+
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
@@ -88,6 +107,30 @@ export const AuthProvider = ({ children }) => {
             return { data, error: null }
         } catch (error) {
             return { data: null, error }
+        }
+    }
+
+    const resetPassword = async (email) => {
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            })
+            if (error) throw error
+            return { error: null }
+        } catch (error) {
+            return { error }
+        }
+    }
+
+    const updatePassword = async (newPassword) => {
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword
+            })
+            if (error) throw error
+            return { error: null }
+        } catch (error) {
+            return { error }
         }
     }
 
@@ -148,7 +191,9 @@ export const AuthProvider = ({ children }) => {
         signIn,
         signOut,
         updateProfile,
-        getProfile
+        getProfile,
+        resetPassword,
+        updatePassword
     }
 
     return (

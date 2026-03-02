@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import socket from "./socket"; // using the shared socket
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -295,7 +295,7 @@ const SimpleAudioPlayer = ({ src }) => {
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span style={{ fontSize: 16, marginRight: 6, color: '#007bff' }} role="img" aria-label="voice">🎤</span>
+          <span style={{ fontSize: 16, marginRight: 6, color: '#007bff' }} role="img" aria-label="voice">ðŸŽ¤</span>
           <span style={{ fontWeight: 500, color: '#495057', fontSize: 14 }}>Voice Message</span>
         </div>
         {isLoading && (
@@ -333,7 +333,7 @@ const SimpleAudioPlayer = ({ src }) => {
           }}
           onMouseDown={(e) => e.preventDefault()}
         >
-          {isPlaying ? '⏸️' : '▶️'}
+          {isPlaying ? 'â¸ï¸' : 'â–¶ï¸'}
         </button>
 
         {/* Progress bar and time */}
@@ -1168,7 +1168,7 @@ function ChatMain() {
     const handleIncomingCall = ({ from, roomCode: callRoomCode, participants, message }) => {
       if (callRoomCode === roomCode && from !== username) {
         Swal.fire({
-          title: 'Incoming Call! 🎉',
+          title: 'Incoming Call! ðŸŽ‰',
           text: message || `${from} is inviting you to a group voice call!`,
           icon: 'question',
           showCancelButton: true,
@@ -1620,7 +1620,7 @@ function ChatMain() {
               fontSize: "0.75rem",
               color: `${getTextColor(msg.username)}CC`
             }}>
-              ❤️ {msg.likes.length}
+              â¤ï¸ {msg.likes.length}
             </div>
           )}
         </div>
@@ -1727,14 +1727,14 @@ function ChatMain() {
       console.log('Cache-Control:', response.headers.get('cache-control'));
 
       if (response.ok) {
-        console.log('✅ Backend is serving audio files correctly');
+        console.log('âœ… Backend is serving audio files correctly');
         return true;
       } else {
-        console.error('❌ Backend audio serving issue:', response.status);
+        console.error('âŒ Backend audio serving issue:', response.status);
         return false;
       }
     } catch (error) {
-      console.error('❌ Backend audio test failed:', error);
+      console.error('âŒ Backend audio test failed:', error);
       return false;
     }
   };
@@ -1907,7 +1907,7 @@ function ChatMain() {
               title="Leave Room"
               onClick={() => navigate("/ChatLanding")}
             >
-              <span role="img" aria-label="leave" style={{ fontSize: 22 }}>🚪</span>
+              <span role="img" aria-label="leave" style={{ fontSize: 22 }}>ðŸšª</span>
             </button>
             {/* Room Code (center) - Clickable to copy */}
             <span
@@ -1956,7 +1956,7 @@ function ChatMain() {
               }}
               title="Click to copy room code"
             >
-              <span role="img" aria-label="Room" style={{ marginRight: 6 }}>📋</span>
+              <span role="img" aria-label="Room" style={{ marginRight: 6 }}>ðŸ“‹</span>
               {roomCode}
             </span>
             {/* Menu Icon (right) */}
@@ -1980,7 +1980,7 @@ function ChatMain() {
               onClick={() => setShowHeaderMenu(v => !v)}
               aria-label="Open menu"
             >
-              <span style={{ fontSize: 26, lineHeight: 1 }}>⋮</span>
+              <span style={{ fontSize: 26, lineHeight: 1 }}>â‹®</span>
             </button>
             {/* Interactive Dropdown Menu */}
             {showHeaderMenu && (
@@ -1999,21 +1999,21 @@ function ChatMain() {
                 gap: 2,
               }}>
                 <div className="menu-item" style={{ padding: '10px 20px', color: '#fff', fontWeight: 500, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span role="img" aria-label="users">👥</span> {userCount} online
+                  <span role="img" aria-label="users">ðŸ‘¥</span> {userCount} online
                 </div>
                 <div
                   className="menu-item"
                   style={{ padding: '10px 20px', color: '#fff', fontWeight: 500, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
                   onClick={() => { setShowHeaderMenu(false); navigate('/voicecall', { state: { roomCode, username } }); }}
                 >
-                  <span role="img" aria-label="call">📞</span> Call
+                  <span role="img" aria-label="call">ðŸ“ž</span> Call
                 </div>
                 <div
                   className="menu-item"
                   style={{ padding: '10px 20px', color: '#fff', fontWeight: 500, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
                   onClick={() => { setShowHeaderMenu(false); fileInputRef.current && fileInputRef.current.click(); }}
                 >
-                  <span role="img" aria-label="background">🖼️</span> Background
+                  <span role="img" aria-label="background">ðŸ–¼ï¸</span> Background
                 </div>
               </div>
             )}
@@ -2095,7 +2095,7 @@ function ChatMain() {
                   }}
                   title="Attach file"
                 >
-                  📎
+                  ðŸ“Ž
                 </button>
 
                 {/* Audio recording button */}
@@ -2121,7 +2121,7 @@ function ChatMain() {
                   }}
                   title={isRecording ? "Stop recording" : "Record audio"}
                 >
-                  {isRecording ? '⏹️' : '🎤'}
+                  {isRecording ? 'â¹ï¸' : 'ðŸŽ¤'}
                 </button>
 
                 {/* Hidden file input */}
@@ -2181,7 +2181,7 @@ function ChatMain() {
                   disabled={(!input.trim() && !attachment && !recordedAudio) || sendAnimating}
                 >
                   <span style={{ transition: 'visibility 0.2s' }}>
-                    {attachment ? '📎 Send' : recordedAudio ? '🎤 Send' : 'Send'}
+                    {attachment ? 'ðŸ“Ž Send' : recordedAudio ? 'ðŸŽ¤ Send' : 'Send'}
                   </span>
                 </button>
               </form>
@@ -2318,7 +2318,7 @@ function ChatMain() {
                 }}
                 title="Remove attachment"
               >
-                ×
+                Ã—
               </button>
 
               {/* File preview */}
@@ -2348,7 +2348,7 @@ function ChatMain() {
                   fontSize: "12px",
                   color: "#6c757d"
                 }}>
-                  <div style={{ fontSize: "24px", marginBottom: "4px" }}>📄</div>
+                  <div style={{ fontSize: "24px", marginBottom: "4px" }}>ðŸ“„</div>
                   <div style={{ textAlign: "center", wordBreak: "break-word" }}>
                     {attachment.name}
                   </div>

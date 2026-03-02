@@ -16,6 +16,7 @@ import VoiceCall from "./components/VoiceCall";
 import VideoCall from "./components/VideoCall";
 import FeaturesGrid from './components/FeaturesGrid';
 import UserDashboard from "./UserDashboard";
+import ResetPassword from "./ResetPassword";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/interest-chat" element={<InterestChat />} />
             <Route path="/features" element={<FeaturesGrid />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes */}
             <Route path="/TutorialPage" element={<ProtectedRoute><TutorialPage /></ProtectedRoute>} />
