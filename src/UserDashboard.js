@@ -364,22 +364,26 @@ const UserDashboard = () => {
       .eq('user_id', user.id)
       .eq('friend_username', username);
 
-    // Try to delete the reverse entry (them → me) — look up their user_id first
-    const { data: friendProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .ilike('username', username)
-      .maybeSingle();
+    // Delete reverse entry (them → me) without needing a profile lookup
+    // Match by friend_username only since we don't have their user_id
+    await supabase
+      .from('friendships')
+      .delete()
+      .eq('friend_username', myUsername)
+      .neq('user_id', user.id); // safety: not ourselves
 
-    if (friendProfile?.id) {
-      await supabase
-        .from('friendships')
-        .delete()
-        .eq('user_id', friendProfile.id)
-        .eq('friend_username', myUsername);
-    }
+    // Clear from localStorage favorites so InterestChat "Add Friend" re-enables
+    try {
+      const key = `vibester:favorites:${user.id}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const list = JSON.parse(raw);
+        const updated = list.filter(f => f.username?.toLowerCase() !== username.toLowerCase());
+        localStorage.setItem(key, JSON.stringify(updated));
+      }
+    } catch { /* ignore */ }
 
-    // Remove from local state immediately
+    // Remove from local React state immediately
     setDbFriends(prev => prev.filter(f => f.username !== username));
     // Close chat if it was open with this person
     if (activeDmFriend?.username === username) setActiveDmFriend(null);

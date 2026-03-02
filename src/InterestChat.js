@@ -352,6 +352,25 @@ const InterestChat = () => {
     }, [isSearching, isMatchFound]);
 
     useEffect(() => {
+        if (!username) return;
+
+        const doRegister = () => {
+            console.log('[InterestChat] Registering socket as:', username.toLowerCase());
+            socket.emit('register', username.toLowerCase());
+        };
+
+        // Register now and on every reconnect (in case backend restarts)
+        if (socket.connected) {
+            doRegister();
+        } else {
+            socket.connect();
+        }
+        socket.on('connect', doRegister);
+
+        return () => socket.off('connect', doRegister);
+    }, [username]);
+
+    useEffect(() => {
         if (!username || !interests || interests.length === 0) {
             navigate('/Home');
             return;
@@ -360,10 +379,6 @@ const InterestChat = () => {
         searchStartTimestamp.current = Date.now();
 
         console.log('🔍 Debug: Joining interest room with:', { username, interests });
-        // Register username with socket server so friend requests and DMs can reach this user
-        if (username) {
-            socket.emit('register', username.toLowerCase());
-        }
         socket.emit('joinInterestRoom', { username, interests });
 
         const messageHandler = (message) => {

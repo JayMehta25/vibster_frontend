@@ -133,16 +133,15 @@ export const AuthProvider = ({ children }) => {
 
     const signOut = async () => {
         try {
-            const { error } = await supabase.auth.signOut()
-            if (error) throw error
-
-            // Clear localStorage
+            // Use 'local' scope to avoid 403 when server token is already expired
+            await supabase.auth.signOut({ scope: 'local' })
+        } catch (err) {
+            console.warn('Sign out server error (ignored):', err)
+        } finally {
+            // Always clear local state regardless of server response
             localStorage.removeItem('username')
-
-            return { error: null }
-        } catch (error) {
-            return { error }
         }
+        return { error: null }
     }
 
     const updateProfile = async (updates) => {
