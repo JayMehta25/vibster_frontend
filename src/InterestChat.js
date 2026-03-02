@@ -360,6 +360,10 @@ const InterestChat = () => {
         searchStartTimestamp.current = Date.now();
 
         console.log('🔍 Debug: Joining interest room with:', { username, interests });
+        // Register username with socket server so friend requests and DMs can reach this user
+        if (username) {
+            socket.emit('register', username.toLowerCase());
+        }
         socket.emit('joinInterestRoom', { username, interests });
 
         const messageHandler = (message) => {
@@ -399,18 +403,53 @@ const InterestChat = () => {
         socket.on('interestRoomUserCount', userCountHandler);
         socket.on('interestRoomAssigned', roomAssignedHandler);
 
-        const handleIncomingFriendRequest = ({ from }) => {
-            Swal.fire({
-                title: 'New Connection!',
-                text: `${from} has added you on Vibester. Check your Dashboard!`,
+        // Friend request handler — shows Accept/Decline dialog
+        const handleIncomingFriendRequest = async ({ from }) => {
+            const result = await Swal.fire({
+                title: `👋 ${from} added you!`,
+                text: 'They want to connect on your Dashboard. Accept?',
                 icon: 'info',
-                timer: 3000,
-                showConfirmButton: false,
-                background: 'rgba(10, 20, 30, 0.95)',
+                showCancelButton: true,
+                confirmButtonText: '✅ Accept',
+                cancelButtonText: 'Later',
+                confirmButtonColor: '#00d8ff',
+                background: 'rgba(10, 20, 30, 0.97)',
                 color: '#fff',
-                toast: true,
-                position: 'top-end'
+                toast: false,
+                position: 'center',
             });
+
+            if (result.isConfirmed && user) {
+                try {
+                    const { supabase } = await import('./supabaseClient');
+                    await supabase.from('friendships').upsert(
+                        { user_id: user.id, friend_username: from, added_from: 'interest-chat-accept' },
+                        { onConflict: 'user_id,friend_username' }
+                    );
+                    // Save to localStorage too
+                    if (friendStorageKey) {
+                        try {
+                            const raw = localStorage.getItem(friendStorageKey) || '[]';
+                            const list = JSON.parse(raw);
+                            if (!list.some(x => x.username === from)) {
+                                list.push({ username: from, source: 'interest-chat-accept', addedAt: new Date().toISOString() });
+                                localStorage.setItem(friendStorageKey, JSON.stringify(list));
+                            }
+                        } catch { /* ignore */ }
+                    }
+                    Swal.fire({
+                        title: '🎉 Connected!',
+                        text: `You and ${from} are now linked on your Dashboard.`,
+                        icon: 'success',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        background: 'rgba(10, 20, 30, 0.97)',
+                        color: '#fff',
+                    });
+                } catch (err) {
+                    console.warn('[InterestChat] Failed to save accepted friend:', err);
+                }
+            }
         };
         socket.on('incomingFriendRequest', handleIncomingFriendRequest);
 

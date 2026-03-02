@@ -1436,7 +1436,7 @@ const UserDashboard = () => {
               </button>
               <button
                 className="profile-action-btn profile-action-btn--text"
-                onClick={() => { setSelectedPerson(null); handleTextFriend(selectedPerson.username); }}
+                onClick={() => { handleTextFriend(selectedPerson); setSelectedPerson(null); }}
               >
                 💬 Text
               </button>
