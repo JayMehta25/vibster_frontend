@@ -26,7 +26,14 @@ const UserDashboard = () => {
   const [dbFriends, setDbFriends] = useState([]);
   const [requests, setRequests] = useState([]);
 
-  // Fetch real friends from Supabase
+  // Refs for socket listeners to avoid stale data/loops
+  const dbFriendsRef = useRef([]);
+  const requestsRef = useRef([]);
+
+  useEffect(() => { dbFriendsRef.current = dbFriends; }, [dbFriends]);
+  useEffect(() => { requestsRef.current = requests; }, [requests]);
+
+  // Fetch real friends from Supabase once on mount/user change
   useEffect(() => {
     if (!user) return;
     supabase
@@ -37,29 +44,31 @@ const UserDashboard = () => {
       .then(({ data, error }) => {
         if (error) { console.warn('Friendships fetch error:', error); return; }
         if (data && data.length > 0) {
-          const seed = new Date().getHours();
           setDbFriends(data.map((f, i) => ({
             username: f.friend_username,
-            isOnline: ((i + seed) % 3) !== 0,
+            isOnline: false, // Default to offline, will be updated by socket
           })));
         } else {
-          // Fallback: read from localStorage
           try {
             const key = `vibester:favorites:${user.id}`;
             const raw = localStorage.getItem(key);
             if (raw) {
               const list = JSON.parse(raw);
               if (Array.isArray(list)) {
-                const seed = new Date().getHours();
-                setDbFriends(list.map((f, i) => ({
+                setDbFriends(list.map((f) => ({
                   username: f.username || 'Unknown',
-                  isOnline: ((i + seed) % 3) !== 0,
+                  isOnline: false,
                 })));
               }
             }
           } catch { /* ignore */ }
         }
       });
+  }, [user]);
+
+  // Handle Socket Events & Status Polling
+  useEffect(() => {
+    if (!user) return;
 
     // Fetch incoming friend requests (people who added me, but I haven't added them)
     supabase
@@ -73,7 +82,7 @@ const UserDashboard = () => {
           const reqs = [];
           for (const r of data) {
             const { data: profile } = await supabase.from('profiles').select('username').eq('id', r.user_id).single();
-            if (profile && !dbFriends.some(f => f.username === profile.username)) {
+            if (profile && !dbFriendsRef.current.some(f => f.username === profile.username)) {
               reqs.push({ username: profile.username, id: r.user_id });
             }
           }
@@ -87,9 +96,24 @@ const UserDashboard = () => {
       socket.emit('register', myUsername);
     }
 
+    const handleOnlineUsers = (list) => {
+      setDbFriends(prev => prev.map(f => ({
+        ...f,
+        isOnline: list.includes(f.username)
+      })));
+    };
+
+    socket.on('onlineUsersList', handleOnlineUsers);
+
+    // Poll for status updates every 30s
+    const statusInterval = setInterval(() => {
+      socket.emit('getOnlineUsers');
+    }, 30000);
+    socket.emit('getOnlineUsers');
+
     const handleIncomingRequest = ({ from }) => {
       // Only add if not already a friend or already in requests
-      if (!dbFriends.some(f => f.username === from) && !requests.some(r => r.username === from)) {
+      if (!dbFriendsRef.current.some(f => f.username === from) && !requestsRef.current.some(r => r.username === from)) {
         setRequests(prev => [...prev, { username: from }]);
         // Optional: show a small toast/alert
       }
@@ -99,8 +123,10 @@ const UserDashboard = () => {
 
     return () => {
       socket.off('incomingFriendRequest', handleIncomingRequest);
+      socket.off('onlineUsersList', handleOnlineUsers);
+      clearInterval(statusInterval);
     };
-  }, [user, dbFriends]);
+  }, [user]); // Removed dbFriends dependency
 
   // Merge real friends with sample users to always fill dome
   const people = useMemo(() => {
@@ -1267,11 +1293,13 @@ const UserDashboard = () => {
             <div
               className="profile-modal__avatar"
               style={{
-                background: `linear-gradient(135deg, ${[
-                  ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
-                  ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
-                  ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
-                ][people.indexOf(selectedPerson) % 8].join(', ')})`,
+                background: `linear-gradient(135deg, ${(
+                  [
+                    ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
+                    ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
+                    ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
+                  ][(people.indexOf(selectedPerson) === -1 ? 0 : people.indexOf(selectedPerson)) % 8].join(', ')
+                )})`,
               }}
             >
               {selectedPerson.username.slice(0, 2).toUpperCase()}

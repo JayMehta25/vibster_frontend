@@ -334,10 +334,26 @@ const InterestChat = () => {
         socket.on('interestRoomUserCount', userCountHandler);
         socket.on('interestRoomAssigned', roomAssignedHandler);
 
+        const handleIncomingFriendRequest = ({ from }) => {
+            Swal.fire({
+                title: 'New Connection!',
+                text: `${from} has added you on Vibester. Check your Dashboard!`,
+                icon: 'info',
+                timer: 3000,
+                showConfirmButton: false,
+                background: 'rgba(10, 20, 30, 0.95)',
+                color: '#fff',
+                toast: true,
+                position: 'top-end'
+            });
+        };
+        socket.on('incomingFriendRequest', handleIncomingFriendRequest);
+
         return () => {
             socket.off('receiveInterestMessage', messageHandler);
             socket.off('interestRoomUserCount', userCountHandler);
             socket.off('interestRoomAssigned', roomAssignedHandler);
+            socket.off('incomingFriendRequest', handleIncomingFriendRequest);
             const isReturningFromCall = typeof window !== 'undefined' && (
                 window.sessionStorage.getItem('returningFromVideoCall') === 'true' ||
                 window.sessionStorage.getItem('returningFromVoiceCall') === 'true'

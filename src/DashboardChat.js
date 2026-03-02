@@ -8,6 +8,7 @@ const GRADIENTS = [
 ];
 
 function getGrad(username) {
+  if (!username) return GRADIENTS[0];
   let h = 0;
   for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) & 0xffff;
   return GRADIENTS[h % GRADIENTS.length];
@@ -30,7 +31,7 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
 
   // Fetch message history between me and this friend
   useEffect(() => {
-    if (!user) return;
+    if (!user || !friend?.username) return;
     setLoading(true);
     supabase
       .from('messages')
