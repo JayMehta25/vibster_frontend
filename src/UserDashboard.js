@@ -117,7 +117,7 @@ const UserDashboard = () => {
     const registerWithSocket = () => {
       if (myUsername) {
         console.log('[Dashboard] Registering socket as:', myUsername);
-        socket.emit('register', myUsername);
+        socket.emit('register', myUsername.toLowerCase());
       }
     };
 
@@ -130,9 +130,11 @@ const UserDashboard = () => {
     socket.on('connect', registerWithSocket);
 
     const handleOnlineUsers = (list) => {
+      // Use lowercase comparison to avoid case-sensitivity mismatches
+      const lowerList = list.map(u => u.toLowerCase());
       setDbFriends(prev => prev.map(f => ({
         ...f,
-        isOnline: list.includes(f.username)
+        isOnline: lowerList.includes(f.username.toLowerCase())
       })));
     };
 
@@ -340,6 +342,48 @@ const UserDashboard = () => {
   };
 
   const handleAddToRoom = () => { navigate('/chatlanding'); };
+
+  const handleRemoveFriend = async (username) => {
+    const result = await Swal.fire({
+      title: `Remove ${username}?`,
+      text: 'They will be removed from your connections.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Remove',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#e17055',
+      background: 'rgba(8,12,30,0.97)',
+      color: '#fff'
+    });
+    if (!result.isConfirmed) return;
+
+    // Delete the forward friendship (me → them)
+    await supabase
+      .from('friendships')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('friend_username', username);
+
+    // Try to delete the reverse entry (them → me) — look up their user_id first
+    const { data: friendProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('username', username)
+      .maybeSingle();
+
+    if (friendProfile?.id) {
+      await supabase
+        .from('friendships')
+        .delete()
+        .eq('user_id', friendProfile.id)
+        .eq('friend_username', myUsername);
+    }
+
+    // Remove from local state immediately
+    setDbFriends(prev => prev.filter(f => f.username !== username));
+    // Close chat if it was open with this person
+    if (activeDmFriend?.username === username) setActiveDmFriend(null);
+  };
 
   return (
     <div
@@ -1323,6 +1367,12 @@ const UserDashboard = () => {
                   </div>
                   <div className="friend-card__actions">
                     <button className="friend-action-btn friend-action-btn--primary" onClick={() => handleTextFriend(p)}>💬 Text</button>
+                    <button
+                      className="friend-action-btn"
+                      onClick={() => handleRemoveFriend(p.username)}
+                      style={{ color: '#ff7675', borderColor: 'rgba(255,118,117,0.3)' }}
+                      title={`Remove ${p.username}`}
+                    >✕</button>
                   </div>
                 </div>
               );

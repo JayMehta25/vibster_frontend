@@ -195,6 +195,71 @@ const InterestChat = () => {
         });
     };
 
+    // Listen for friend requests from the current chat partner
+    useEffect(() => {
+        if (!otherUsername) return;
+
+        const handleIncomingRequest = async ({ from }) => {
+            // Only react if the request is from our current chat partner
+            if (from.toLowerCase() !== otherUsername.toLowerCase()) return;
+
+            const result = await Swal.fire({
+                title: `👋 ${from} added you!`,
+                text: 'They want to connect on the Dashboard. Accept?',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '✅ Accept',
+                cancelButtonText: 'Later',
+                confirmButtonColor: '#00d8ff',
+                cancelButtonColor: 'rgba(255,255,255,0.15)',
+                background: 'rgba(10, 20, 30, 0.97)',
+                color: '#fff',
+            });
+
+            if (result.isConfirmed && user) {
+                try {
+                    const { supabase } = await import('./supabaseClient');
+                    // Save mutual friendship to Supabase
+                    await supabase.from('friendships').upsert(
+                        {
+                            user_id: user.id,
+                            friend_username: from,
+                            added_from: 'interest-chat-accept',
+                        },
+                        { onConflict: 'user_id,friend_username' }
+                    );
+
+                    // Also save to localStorage for quick access
+                    if (friendStorageKey) {
+                        try {
+                            const raw = localStorage.getItem(friendStorageKey) || '[]';
+                            const list = JSON.parse(raw);
+                            if (!list.some(x => x.username === from)) {
+                                list.push({ username: from, source: 'interest-chat-accept', addedAt: new Date().toISOString() });
+                                localStorage.setItem(friendStorageKey, JSON.stringify(list));
+                            }
+                        } catch { /* ignore */ }
+                    }
+
+                    Swal.fire({
+                        title: '🎉 Connected!',
+                        text: `You and ${from} are now linked on your Dashboard.`,
+                        icon: 'success',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        background: 'rgba(10, 20, 30, 0.97)',
+                        color: '#fff',
+                    });
+                } catch (err) {
+                    console.warn('[InterestChat] Failed to accept friend request:', err);
+                }
+            }
+        };
+
+        socket.on('incomingFriendRequest', handleIncomingRequest);
+        return () => socket.off('incomingFriendRequest', handleIncomingRequest);
+    }, [otherUsername, user, friendStorageKey]);
+
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
