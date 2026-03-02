@@ -33,7 +33,12 @@ const InterestChat = () => {
             return null;
         }
     }, []);
-    const username = navUsername || localStorage.getItem('username') || '';
+    const username = navUsername
+        || localStorage.getItem('username')
+        || user?.user_metadata?.username
+        || user?.email?.split('@')[0]
+        || '';
+
 
     const [isSearching, setIsSearching] = useState(savedChatState?.isSearching ?? true);
     const [isMatchFound, setIsMatchFound] = useState(savedChatState?.isMatchFound ?? false);
