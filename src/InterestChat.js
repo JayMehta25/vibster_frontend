@@ -177,6 +177,9 @@ const InterestChat = () => {
                 },
                 { onConflict: 'user_id,friend_username' }
             );
+
+            // Notify the other user via socket for real-time request alert
+            socket.emit('sendFriendRequest', { to: otherUsername, from: username });
         } catch (dbErr) {
             console.warn('Could not save friend to DB:', dbErr);
         }

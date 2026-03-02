@@ -4,6 +4,8 @@ import DomeGallery from './DomeGallery';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './supabaseClient';
 import DashboardChat from './DashboardChat';
+import socket from './socket';
+import Swal from 'sweetalert2';
 
 // Sample users so the dome always looks populated
 const SAMPLE_PEOPLE = [
@@ -22,6 +24,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
 
   const [dbFriends, setDbFriends] = useState([]);
+  const [requests, setRequests] = useState([]);
 
   // Fetch real friends from Supabase
   useEffect(() => {
@@ -57,7 +60,47 @@ const UserDashboard = () => {
           } catch { /* ignore */ }
         }
       });
-  }, [user]);
+
+    // Fetch incoming friend requests (people who added me, but I haven't added them)
+    supabase
+      .from('friendships')
+      .select('user_id, added_at')
+      .eq('friend_username', user.user_metadata?.username || localStorage.getItem('username'))
+      .then(async ({ data, error }) => {
+        if (error) return;
+        if (data) {
+          // We need usernames, so fetch profile for each user_id
+          const reqs = [];
+          for (const r of data) {
+            const { data: profile } = await supabase.from('profiles').select('username').eq('id', r.user_id).single();
+            if (profile && !dbFriends.some(f => f.username === profile.username)) {
+              reqs.push({ username: profile.username, id: r.user_id });
+            }
+          }
+          setRequests(reqs);
+        }
+      });
+
+    // Listen for real-time friend requests
+    const myUsername = user.user_metadata?.username || localStorage.getItem('username');
+    if (myUsername) {
+      socket.emit('register', myUsername);
+    }
+
+    const handleIncomingRequest = ({ from }) => {
+      // Only add if not already a friend or already in requests
+      if (!dbFriends.some(f => f.username === from) && !requests.some(r => r.username === from)) {
+        setRequests(prev => [...prev, { username: from }]);
+        // Optional: show a small toast/alert
+      }
+    };
+
+    socket.on('incomingFriendRequest', handleIncomingRequest);
+
+    return () => {
+      socket.off('incomingFriendRequest', handleIncomingRequest);
+    };
+  }, [user, dbFriends]);
 
   // Merge real friends with sample users to always fill dome
   const people = useMemo(() => {
@@ -149,15 +192,47 @@ const UserDashboard = () => {
 
   const totalUnread = useMemo(() => chatPreviews.reduce((s, c) => s + c.unread, 0), [chatPreviews]);
 
-  const handleTextFriend = (friend) => {
+  const handleTextFriend = async (friend) => {
     // friend can be a string (username) or a full person object
-    const personObj = typeof friend === 'string'
+    let personObj = typeof friend === 'string'
       ? people.find((p) => p.username === friend) || { username: friend, isOnline: false }
       : friend;
+
+    // If it's a request (has isRequest: true or we can check requests state)
+    const isIncomingRequest = requests.some(r => r.username === personObj.username);
+    if (isIncomingRequest) {
+      // Mutualize the friendship in Supabase
+      try {
+        await supabase.from('friendships').upsert({
+          user_id: user.id,
+          friend_username: personObj.username,
+          added_from: 'dashboard-request'
+        }, { onConflict: 'user_id,friend_username' });
+
+        // Remove from requests state and add to dbFriends
+        setRequests(prev => prev.filter(r => r.username !== personObj.username));
+        if (!dbFriends.some(f => f.username === personObj.username)) {
+          setDbFriends(prev => [...prev, { username: personObj.username, isOnline: true }]);
+        }
+
+        await Swal.fire({
+          title: 'Connected!',
+          text: `You and ${personObj.username} can now chat freely.`,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          background: 'rgba(8,12,30,0.95)',
+          color: '#fff'
+        });
+      } catch (err) {
+        console.warn('Add back failed:', err);
+      }
+    }
+
     setSelectedPerson(null);
-    setShowFriendsPanel(false);
+    setActiveDmFriend({ ...personObj, isRequest: isIncomingRequest });
     setShowChatsPanel(false);
-    setActiveDmFriend(personObj);
+    setShowFriendsPanel(false);
   };
 
   const BIOS = [
@@ -1111,34 +1186,61 @@ const UserDashboard = () => {
           <button className="friends-panel__close" onClick={() => setShowFriendsPanel(false)}>✕</button>
         </div>
         <div className="friends-panel__list">
-          {people.map((p, i) => {
-            const initials = p.username.slice(0, 2).toUpperCase();
-            const gradients = [
-              ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
-              ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
-              ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
-            ];
-            const grad = gradients[i % gradients.length];
-            return (
-              <div className="friend-card" key={p.username + i}>
-                <div
-                  className="friend-card__avatar"
-                  style={{ background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})` }}
-                >
-                  {initials}
-                  <span className={`friend-card__status friend-card__status--${p.isOnline ? 'online' : 'offline'}`} />
+          {requests.length > 0 && (
+            <div className="friends-section">
+              <div className="friends-section-title" style={{ fontSize: '10px', color: '#00b7ff', fontWeight: 800, padding: '10px 5px', opacity: 0.8 }}>REQUESTS ({requests.length})</div>
+              {requests.map((req) => (
+                <div key={req.username} className="friend-card" style={{ border: '1px solid rgba(255,121,198,0.3)', background: 'rgba(255,121,198,0.05)' }}>
+                  <div className="friend-card__avatar" style={{ background: 'linear-gradient(135deg, #fd79a8, #e17055)' }}>
+                    {req.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="friend-card__info">
+                    <div className="friend-card__name">{req.username}</div>
+                    <div className="friend-card__meta">Wants to message you</div>
+                  </div>
+                  <div className="friend-card__actions">
+                    <button
+                      className="friend-action-btn friend-action-btn--primary"
+                      onClick={() => handleTextFriend({ username: req.username, isOnline: true })}
+                    >
+                      Add Back
+                    </button>
+                  </div>
                 </div>
-                <div className="friend-card__info">
-                  <div className="friend-card__name">{p.username}</div>
-                  <div className="friend-card__meta">{p.isOnline ? '🟢 Online' : '⚫ Offline'}</div>
+              ))}
+            </div>
+          )}
+
+          <div className="friends-section">
+            <div className="friends-section-title" style={{ fontSize: '10px', color: '#00b7ff', fontWeight: 800, padding: '10px 5px', opacity: 0.8 }}>CONNECTIONS ({people.length})</div>
+            {people.map((p, i) => {
+              const initials = p.username.slice(0, 2).toUpperCase();
+              const gradients = [
+                ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
+                ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
+                ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
+              ];
+              const grad = gradients[i % gradients.length];
+              return (
+                <div className="friend-card" key={p.username + i}>
+                  <div
+                    className="friend-card__avatar"
+                    style={{ background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})` }}
+                  >
+                    {initials}
+                    <span className={`friend-card__status friend-card__status--${p.isOnline ? 'online' : 'offline'}`} />
+                  </div>
+                  <div className="friend-card__info">
+                    <div className="friend-card__name">{p.username}</div>
+                    <div className="friend-card__meta">{p.isOnline ? '🟢 Online' : '⚫ Offline'}</div>
+                  </div>
+                  <div className="friend-card__actions">
+                    <button className="friend-action-btn friend-action-btn--primary" onClick={() => handleTextFriend(p)}>💬 Text</button>
+                  </div>
                 </div>
-                <div className="friend-card__actions">
-                  <button className="friend-action-btn friend-action-btn--primary" onClick={() => handleTextFriend(p.username)}>💬 Text</button>
-                  <button className="friend-action-btn" onClick={() => handleAddToRoom(p.username)}>🚪 Room</button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 

@@ -118,6 +118,7 @@ export default function DomeGallery({
   imageBorderRadius = '30px',
   openedImageBorderRadius = '30px',
   grayscale = false,
+  autoRotateSpeed = 0.08,
 }) {
   const rootRef = useRef(null);
   const mainRef = useRef(null);
@@ -684,6 +685,28 @@ export default function DomeGallery({
     },
     [openItemFromElement, isCardFacingAway, animateRotateToCenter, onPersonClick, people],
   );
+
+  useEffect(() => {
+    if (!autoRotateSpeed) return;
+    let requestId;
+    const loop = () => {
+      // Skip if interacting
+      const isInteracting =
+        draggingRef.current ||
+        inertiaRAF.current ||
+        rotateToCenterRAF.current ||
+        openingRef.current ||
+        rootRef.current?.getAttribute('data-enlarging') === 'true';
+
+      if (!isInteracting) {
+        rotationRef.current.y = wrapAngleSigned(rotationRef.current.y + autoRotateSpeed);
+        applyTransform(rotationRef.current.x, rotationRef.current.y);
+      }
+      requestId = requestAnimationFrame(loop);
+    };
+    requestId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(requestId);
+  }, [autoRotateSpeed]);
 
   useEffect(() => {
     return () => {
