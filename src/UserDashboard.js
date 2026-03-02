@@ -91,8 +91,8 @@ const UserDashboard = () => {
     // Fetch incoming friend requests (people who added me, but I haven't added them)
     supabase
       .from('friendships')
-      .select('user_id, added_at')
-      .eq('friend_username', user.user_metadata?.username || localStorage.getItem('username'))
+      .select('user_id, created_at')
+      .eq('friend_username', myUsername)
       .then(async ({ data, error }) => {
         if (error) return;
         if (data) {
