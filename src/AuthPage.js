@@ -352,13 +352,13 @@ const AuthPage = () => {
                                     display: 'block',
                                     fontWeight: '500'
                                 }}>
-                                    Username
+                                    Email
                                 </label>
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder={isLogin ? "Username or Email" : "Choose a username"}
+                                    placeholder="your@email.com"
                                     required
                                     style={{
                                         width: '100%',

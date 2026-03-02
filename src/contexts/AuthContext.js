@@ -79,27 +79,8 @@ export const AuthProvider = ({ children }) => {
 
     const signIn = async (identifier, password) => {
         try {
-            let email = identifier
-
-            // Check if identifier is an email. Simple regex check.
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
-
-            if (!isEmail) {
-                // Treat as username, look up email in profiles
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('email')
-                    .eq('username', identifier)
-                    .single()
-
-                if (error || !data) {
-                    throw new Error('User not found')
-                }
-                email = data.email
-            }
-
             const { data, error } = await supabase.auth.signInWithPassword({
-                email,
+                email: identifier,
                 password
             })
 

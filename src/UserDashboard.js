@@ -176,9 +176,17 @@ const UserDashboard = () => {
   }, [user]);
 
 
-  // Merge real friends for dome - REMOVED SAMPLE USERS
+  // Merge real friends with sample users to always fill dome
   const people = useMemo(() => {
-    return dbFriends;
+    const maxCards = 12; // Increased to show more
+    const combined = [...dbFriends];
+    for (const sample of SAMPLE_PEOPLE) {
+      if (combined.length >= maxCards) break;
+      if (!combined.some((p) => p.username === sample.username)) {
+        combined.push(sample);
+      }
+    }
+    return combined;
   }, [dbFriends]);
 
   const handleQuickMatch = () => {
