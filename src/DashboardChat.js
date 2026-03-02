@@ -16,6 +16,7 @@ function getGrad(username) {
 }
 
 function formatTime(iso) {
+  if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -24,11 +25,43 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [socketStatus, setSocketStatus] = useState(socket.connected ? 'connected' : 'connecting');
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  const myUsername = user?.user_metadata?.username || user?.email?.split('@')[0] || 'Me';
-  const grad = getGrad(friend.username);
+  // Consistent username derivation - same priority chain as UserDashboard
+  const myUsername = user?.user_metadata?.username
+    || localStorage.getItem('username')
+    || user?.email?.split('@')[0]
+    || 'Me';
+
+  const grad = getGrad(friend?.username || '');
+
+  // Track socket connection status & re-register on reconnect
+  useEffect(() => {
+    const onConnect = () => {
+      setSocketStatus('connected');
+      // Re-register with socket on reconnect so messages can be delivered
+      console.log('[DashboardChat] Socket connected, re-registering as:', myUsername);
+      socket.emit('register', myUsername);
+    };
+    const onDisconnect = () => setSocketStatus('connecting');
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    // Register immediately if already connected
+    if (socket.connected) {
+      socket.emit('register', myUsername);
+    } else {
+      socket.connect();
+    }
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, [myUsername]);
 
   // Fetch message history between me and this friend
   useEffect(() => {
@@ -38,41 +71,46 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
       .from('messages')
       .select('*')
       .or(
-        `and(sender_id.eq.${user.id},receiver_username.eq.${friend.username}),` +
+        `and(sender_username.eq.${myUsername},receiver_username.eq.${friend.username}),` +
         `and(receiver_username.eq.${myUsername},sender_username.eq.${friend.username})`
       )
       .order('sent_at', { ascending: true })
-      .limit(100)
+      .limit(200)
       .then(({ data, error }) => {
         if (error) {
-          // 403 = RLS not set up yet; show empty state gracefully
-          console.debug('[DashboardChat] messages fetch skipped (RLS not configured):', error.code);
+          console.debug('[DashboardChat] messages fetch error:', error.code, error.message);
         }
         setMessages(data || []);
         setLoading(false);
       });
-  }, [user, friend.username, myUsername]);
+  }, [user, friend?.username, myUsername]);
 
-  // Listen for real-time messages from this friend
+  // Listen for incoming real-time messages from this friend
   useEffect(() => {
     if (!friend?.username) return;
 
     const handleIncoming = (msg) => {
+      console.log('[DashboardChat] incomingDashboardMessage from', msg.from, '(friend is', friend.username, ')');
       if (msg.from === friend.username) {
-        setMessages((prev) => [...prev, {
-          id: 'socket-' + Date.now(),
-          sender_username: msg.from,
-          content: msg.content,
-          sent_at: msg.sent_at,
-        }]);
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some(m => m.id && m.id === msg.id)) return prev;
+          return [...prev, {
+            id: 'socket-' + Date.now(),
+            sender_username: msg.from,
+            receiver_username: myUsername,
+            content: msg.content,
+            sent_at: msg.sent_at || new Date().toISOString(),
+          }];
+        });
       }
     };
 
     socket.on('incomingDashboardMessage', handleIncoming);
     return () => socket.off('incomingDashboardMessage', handleIncoming);
-  }, [friend.username]);
+  }, [friend?.username, myUsername]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -83,11 +121,11 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
   }, []);
 
   const handleSend = async () => {
-    if (!input.trim() || !user) return;
+    if (!input.trim() || !user || !friend?.username) return;
     const text = input.trim();
     setInput('');
 
-    // Optimistic UI
+    // Optimistic UI - show immediately
     const optimistic = {
       id: 'temp-' + Date.now(),
       sender_id: user.id,
@@ -98,27 +136,40 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
     };
     setMessages((prev) => [...prev, optimistic]);
 
-    // Instantly notify parent to update chats panel preview
+    // Notify parent to update chats panel preview
     onMessageSent?.(friend.username, text);
 
-    // Real-time notify via socket
-    socket.emit('dashboardMessage', { to: friend.username, from: myUsername, content: text });
-
-    // Save to Supabase
-    const { data, error } = await supabase.from('messages').insert({
-      sender_id: user.id,
-      sender_username: myUsername,
-      receiver_username: friend.username,
-      content: text,
-    }).select().single();
-
-    if (error) {
-      // 403 = RLS policy not added yet — optimistic message stays visible
-      console.debug('[DashboardChat] message save skipped (RLS not configured):', error.code);
-      return;
+    // Send via socket for real-time delivery to the recipient
+    // Ensure socket is connected before emitting
+    if (socket.connected) {
+      console.log('[DashboardChat] Emitting dashboardMessage to:', friend.username, 'from:', myUsername);
+      socket.emit('dashboardMessage', { to: friend.username, from: myUsername, content: text });
+    } else {
+      console.warn('[DashboardChat] Socket not connected, attempting reconnect...');
+      socket.connect();
+      // Still try to emit — socket.io will queue it
+      socket.emit('dashboardMessage', { to: friend.username, from: myUsername, content: text });
     }
-    if (data) {
-      setMessages((prev) => prev.map((m) => m.id === optimistic.id ? data : m));
+
+    // Save to Supabase for persistence
+    try {
+      const { data, error } = await supabase.from('messages').insert({
+        sender_id: user.id,
+        sender_username: myUsername,
+        receiver_username: friend.username,
+        content: text,
+      }).select().single();
+
+      if (error) {
+        console.debug('[DashboardChat] message persist skipped:', error.code, error.message);
+        return;
+      }
+      if (data) {
+        // Replace optimistic message with real one
+        setMessages((prev) => prev.map((m) => m.id === optimistic.id ? data : m));
+      }
+    } catch (err) {
+      console.warn('[DashboardChat] persist error:', err);
     }
   };
 
@@ -128,6 +179,8 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
       handleSend();
     }
   };
+
+  if (!friend?.username) return null;
 
   return (
     <>
@@ -211,6 +264,16 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
           transition: all 0.2s;
         }
         .dchat-close:hover { background: rgba(255,255,255,0.1); }
+
+        .dchat-socket-status {
+          padding: 4px 12px;
+          font-size: 10px;
+          text-align: center;
+          background: rgba(255,165,0,0.1);
+          color: rgba(255,165,0,0.8);
+          border-bottom: 1px solid rgba(255,165,0,0.15);
+          flex-shrink: 0;
+        }
 
         .dchat-messages {
           flex: 1;
@@ -318,7 +381,7 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
         {/* Header */}
         <div className="dchat-header">
           <div className="dchat-avatar" style={{ background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})` }}>
-            {friend.username.slice(0, 2).toUpperCase()}
+            {(friend.username || '?').slice(0, 2).toUpperCase()}
             <span
               className="dchat-avatar__dot"
               style={{ background: friend.isOnline ? '#22c55e' : '#6b7280', boxShadow: friend.isOnline ? '0 0 5px #22c55e' : 'none' }}
@@ -330,6 +393,11 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
           </div>
           <button className="dchat-close" onClick={onClose}>✕</button>
         </div>
+
+        {/* Socket status warning */}
+        {socketStatus !== 'connected' && (
+          <div className="dchat-socket-status">⚡ Reconnecting real-time...</div>
+        )}
 
         {/* Messages */}
         <div className="dchat-messages">
@@ -359,7 +427,7 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
             </div>
           ) : (
             messages.map((m) => {
-              const isMine = m.sender_id === user.id || m.sender_username === myUsername;
+              const isMine = m.sender_username === myUsername;
               return (
                 <div key={m.id} className={`dchat-bubble-wrap dchat-bubble-wrap--${isMine ? 'mine' : 'theirs'}`}>
                   <div className={`dchat-bubble dchat-bubble--${isMine ? 'mine' : 'theirs'}`}>

@@ -31,7 +31,16 @@ const UserDashboard = () => {
   const [chatPreviews, setChatPreviews] = useState([]);
   const [activeDmFriend, setActiveDmFriend] = useState(null);
 
-  const myUsername = user?.user_metadata?.username || localStorage.getItem('username');
+  // Standardized username derivation
+  const myUsername = useMemo(() => {
+    if (!user) return localStorage.getItem('username');
+    return user.user_metadata?.username || localStorage.getItem('username') || user.email?.split('@')[0];
+  }, [user]);
+
+  // Keep localStorage in sync for consistency across components
+  useEffect(() => {
+    if (myUsername) localStorage.setItem('username', myUsername);
+  }, [myUsername]);
 
   // Refs for socket listeners to avoid stale data/loops
   const dbFriendsRef = useRef([]);
@@ -100,9 +109,15 @@ const UserDashboard = () => {
       });
 
     // Listen for real-time friend requests
-    if (myUsername) {
-      socket.emit('register', myUsername);
-    }
+    const registerWithSocket = () => {
+      if (myUsername && socket.connected) {
+        console.log('[Dashboard] Registering socket as:', myUsername);
+        socket.emit('register', myUsername);
+      }
+    };
+
+    registerWithSocket();
+    socket.on('connect', registerWithSocket);
 
     const handleOnlineUsers = (list) => {
       setDbFriends(prev => prev.map(f => ({
@@ -168,12 +183,13 @@ const UserDashboard = () => {
     socket.on('incomingDashboardMessage', handleIncomingMessage);
 
     return () => {
+      socket.off('connect', registerWithSocket);
       socket.off('incomingFriendRequest', handleIncomingRequest);
       socket.off('incomingDashboardMessage', handleIncomingMessage);
       socket.off('onlineUsersList', handleOnlineUsers);
       clearInterval(statusInterval);
     };
-  }, [user]);
+  }, [user, myUsername]);
 
 
   // Merge real friends with sample users to always fill dome

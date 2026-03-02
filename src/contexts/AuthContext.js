@@ -79,8 +79,24 @@ export const AuthProvider = ({ children }) => {
 
     const signIn = async (identifier, password) => {
         try {
+            let emailToUse = identifier.trim()
+
+            // If the identifier doesn't look like an email, look up the email by username
+            if (!emailToUse.includes('@')) {
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('username', emailToUse)
+                    .single()
+
+                if (profileError || !profileData?.email) {
+                    return { data: null, error: { message: 'No account found with that username.' } }
+                }
+                emailToUse = profileData.email
+            }
+
             const { data, error } = await supabase.auth.signInWithPassword({
-                email: identifier,
+                email: emailToUse,
                 password
             })
 
