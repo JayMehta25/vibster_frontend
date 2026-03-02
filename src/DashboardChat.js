@@ -401,23 +401,6 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
 
         {/* Messages */}
         <div className="dchat-messages">
-          {friend.isRequest && (
-            <div style={{
-              background: 'rgba(255,121,198,0.1)',
-              border: '1px solid rgba(255,121,198,0.2)',
-              borderRadius: '12px',
-              padding: '15px',
-              margin: '10px',
-              textAlign: 'center',
-              color: '#fff',
-              fontSize: '13px'
-            }}>
-              <span style={{ fontSize: '20px', display: 'block', marginBottom: '8px' }}>👋</span>
-              <strong>{friend.username}</strong> wants to send you a message!
-              <br />
-              <span style={{ opacity: 0.7, fontSize: '11px' }}>Add them back to start chatting.</span>
-            </div>
-          )}
           {loading ? (
             <div className="dchat-loading">Loading messages...</div>
           ) : messages.length === 0 ? (

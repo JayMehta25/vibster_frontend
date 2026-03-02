@@ -62,9 +62,9 @@ const UserDashboard = () => {
       .then(({ data, error }) => {
         if (error) { console.warn('Friendships fetch error:', error); return; }
         if (data && data.length > 0) {
-          setDbFriends(data.map((f, i) => ({
+          setDbFriends(data.map((f) => ({
             username: f.friend_username,
-            isOnline: false, // Default to offline, will be updated by socket
+            isOnline: false,
           })));
         } else {
           try {
@@ -84,39 +84,49 @@ const UserDashboard = () => {
       });
   }, [user]);
 
-  // Handle Socket Events & Status Polling
+  // Fetch incoming friend requests AFTER dbFriends is loaded to avoid race condition
+  // This runs after dbFriends state is updated so the ref is accurate
   useEffect(() => {
-    if (!user) return;
-
-    // Fetch incoming friend requests (people who added me, but I haven't added them)
+    if (!user || !myUsername) return;
     supabase
       .from('friendships')
       .select('user_id, created_at')
       .eq('friend_username', myUsername)
       .then(async ({ data, error }) => {
         if (error) return;
-        if (data) {
-          // We need usernames, so fetch profile for each user_id
+        if (data && data.length > 0) {
           const reqs = [];
           for (const r of data) {
-            const { data: profile } = await supabase.from('profiles').select('username').eq('id', r.user_id).single();
-            if (profile && !dbFriendsRef.current.some(f => f.username === profile.username)) {
+            const { data: profile } = await supabase
+              .from('profiles').select('username').eq('id', r.user_id).single();
+            // Only add as a request if NOT already a mutual friend
+            if (profile && !dbFriends.some(f => f.username === profile.username)) {
               reqs.push({ username: profile.username, id: r.user_id });
             }
           }
           setRequests(reqs);
         }
       });
+  }, [user, myUsername, dbFriends]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle Socket Events & Status Polling
+  useEffect(() => {
+    if (!user) return;
 
     // Listen for real-time friend requests
     const registerWithSocket = () => {
-      if (myUsername && socket.connected) {
+      if (myUsername) {
         console.log('[Dashboard] Registering socket as:', myUsername);
         socket.emit('register', myUsername);
       }
     };
 
-    registerWithSocket();
+    // Register immediately; if not connected, connect first
+    if (socket.connected) {
+      registerWithSocket();
+    } else {
+      socket.connect();
+    }
     socket.on('connect', registerWithSocket);
 
     const handleOnlineUsers = (list) => {
@@ -192,18 +202,8 @@ const UserDashboard = () => {
   }, [user, myUsername]);
 
 
-  // Merge real friends with sample users to always fill dome
-  const people = useMemo(() => {
-    const maxCards = 12; // Increased to show more
-    const combined = [...dbFriends];
-    for (const sample of SAMPLE_PEOPLE) {
-      if (combined.length >= maxCards) break;
-      if (!combined.some((p) => p.username === sample.username)) {
-        combined.push(sample);
-      }
-    }
-    return combined;
-  }, [dbFriends]);
+  // Only show real friends in the dome — no sample users
+  const people = useMemo(() => [...dbFriends], [dbFriends]);
 
   const handleQuickMatch = () => {
     const username = user?.user_metadata?.username || localStorage.getItem('username') || 'Guest';
