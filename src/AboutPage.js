@@ -202,7 +202,7 @@ export default function AboutPage() {
                 >
                   <ProfileCard
                     name="Jay Mehta"
-                    title="Doing Everything Possible!"
+                    title="Just a start"
                     handle="jaymehta"
                     status="Online"
                     contactText={<span style={gradientBtnStyle}>Click Me</span>}
@@ -238,7 +238,7 @@ export default function AboutPage() {
                     Creator Details
                   </h2>
                   <div style={{ color: '#fff', fontSize: '1.15rem', marginBottom: 24, fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif', textAlign: 'center' }}>
-                    Doing Everything Possible!<br />
+                    Just a start<br />
                     <span style={{ color: '#fff', fontSize: '1rem' }}>Feel free to contact me anytime !!</span>
                   </div>
                   <div style={{ display: 'flex', gap: 24, justifyContent: 'center' }}>
@@ -283,7 +283,7 @@ export default function AboutPage() {
               >
                 <ProfileCard
                   name="Jay Mehta"
-                  title="Doing Everything Possible!"
+                  title="Just a start"
                   handle="jaymehta"
                   status="Online"
                   contactText={<span style={gradientBtnStyle}>Click Me</span>}
@@ -304,7 +304,7 @@ export default function AboutPage() {
                   marginRight: 0,
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'flex-start',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   minWidth: 250,
                   maxWidth: 350,
@@ -317,15 +317,15 @@ export default function AboutPage() {
               >
                 {showDetails && (
                   <>
-                    <h2 style={{ color: '#00d8ff', fontFamily: 'Audiowide, Poppins, "Segoe UI", Arial, sans-serif', fontSize: '2.1rem', marginBottom: 18, marginTop: 0, textShadow: '0 0 10px #00d8ff', textAlign: 'left' }}>
+                    <h2 style={{ color: '#00d8ff', fontFamily: 'Audiowide, Poppins, "Segoe UI", Arial, sans-serif', fontSize: '2.1rem', marginBottom: 18, marginTop: 0, textShadow: '0 0 10px #00d8ff', textAlign: 'center' }}>
                       Creator Details
                     </h2>
-                    <div style={{ color: '#fff', fontSize: '1.15rem', marginBottom: 24, fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif', textAlign: 'left' }}>
+                    <div style={{ color: '#fff', fontSize: '1.15rem', marginBottom: 24, fontFamily: 'Poppins, "Segoe UI", Arial, sans-serif', textAlign: 'center' }}>
                       <strong>Jay Mehta</strong><br />
-                      Doing Everything Possible!<br />
+                      Just a start<br />
                       <span style={{ color: '#fff', fontSize: '1rem' }}>feel free to contact me anytime !!</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 24, justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', gap: 24, justifyContent: 'center' }}>
                       {socials.map(social => (
                         <a
                           key={social.name}
