@@ -1,3 +1,17 @@
+# Vibester - robots.txt
 # https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Don't index protected/auth pages
+Disallow: /chatmain
+Disallow: /chatlanding
+Disallow: /userdashboard
+Disallow: /voicecall
+Disallow: /videocall
+Disallow: /user-reviews
+Disallow: /reset-password
+
+# Sitemap location
+Sitemap: https://vibester.me/sitemap.xml

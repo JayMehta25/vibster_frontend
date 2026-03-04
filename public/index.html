@@ -6,37 +6,83 @@
   <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
+
+  <!-- ── Primary SEO ─────────────────────────────────── -->
+  <title>Vibester — Real-Time Chat, Video Calls & AI Conversations</title>
   <meta name="description"
-    content="Vibester is a social platform for real-time chat, voice calls, and AI-powered conversations. Connect instantly—no signup required!" />
+    content="Vibester is a futuristic social platform for real-time chat, voice & video calls, and AI-powered conversations. Connect with strangers instantly — no signup required!" />
+  <meta name="keywords"
+    content="Vibester, vibester app, real-time chat, video call, voice call, AI chat, stranger chat, social platform, online chat, meet people online" />
+  <meta name="author" content="Vibester" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://vibester.me/" />
+
+  <!-- ── Open Graph (Facebook, WhatsApp, LinkedIn) ──── -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Vibester" />
+  <meta property="og:title" content="Vibester — Real-Time Chat, Video Calls & AI Conversations" />
+  <meta property="og:description"
+    content="Connect with people around the world via real-time chat, voice & video calls, and AI-powered conversations. No signup required!" />
+  <meta property="og:url" content="https://vibester.me/" />
+  <meta property="og:image" content="https://vibester.me/logo512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- ── Twitter / X Card ───────────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vibester — Real-Time Chat, Video Calls & AI Conversations" />
+  <meta name="twitter:description"
+    content="Connect with people around the world via real-time chat, voice & video calls, and AI-powered conversations. No signup required!" />
+  <meta name="twitter:image" content="https://vibester.me/logo512.png" />
+
+  <!-- ── Structured Data (JSON-LD) ─────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Vibester",
+    "url": "https://vibester.me/",
+    "description": "Vibester is a futuristic social platform for real-time chat, voice & video calls, and AI-powered conversations.",
+    "applicationCategory": "SocialNetworkingApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Real-time chat",
+      "Voice calls",
+      "Video calls",
+      "AI Chat Assistant",
+      "Media Sharing",
+      "End-to-end encryption"
+    ]
+  }
+  </script>
+
+  <!-- ── PWA & Icons ───────────────────────────────── -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Vibester" />
   <meta name="msapplication-TileColor" content="#000000" />
+  <meta name="msapplication-TileImage" content="%PUBLIC_URL%/logo192.png" />
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- ── Fonts ─────────────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <!-- Performance hints for Globe textures -->
+
+  <!-- ── Performance hints for Globe textures ──────── -->
   <link rel="dns-prefetch" href="https://unpkg.com">
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="prefetch" as="image" href="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg" crossorigin>
   <link rel="preload" as="image" href="https://unpkg.com/three-globe/example/img/earth-topology.png" crossorigin>
-  <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-  <link rel="manifest" href="/manifest.json" />
-  <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-  <title>Vibester</title>
 </head>
 
 <body>
