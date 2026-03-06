@@ -26,6 +26,7 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent, on
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState(socket.connected ? 'connected' : 'connecting');
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -41,18 +42,20 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent, on
   useEffect(() => {
     const onConnect = () => {
       setSocketStatus('connected');
-      // Re-register with socket on reconnect so messages can be delivered
       console.log('[DashboardChat] Socket connected, re-registering as:', myUsername);
       socket.emit('register', myUsername);
+      socket.emit('getOnlineUsers');
     };
     const onDisconnect = () => setSocketStatus('connecting');
+    const onOnlineUsers = (list) => setOnlineUsers(list.map(u => u.toLowerCase()));
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    socket.on('onlineUsersList', onOnlineUsers);
 
-    // Register immediately if already connected
     if (socket.connected) {
       socket.emit('register', myUsername);
+      socket.emit('getOnlineUsers');
     } else {
       socket.connect();
     }
@@ -60,8 +63,11 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent, on
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      socket.off('onlineUsersList', onOnlineUsers);
     };
   }, [myUsername]);
+
+  const friendIsOnline = onlineUsers.includes((friend?.username || '').toLowerCase());
 
   // Fetch message history between me and this friend
   useEffect(() => {
@@ -425,12 +431,12 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent, on
             {(friend.username || '?').slice(0, 2).toUpperCase()}
             <span
               className="dchat-avatar__dot"
-              style={{ background: friend.isOnline ? '#22c55e' : '#6b7280', boxShadow: friend.isOnline ? '0 0 5px #22c55e' : 'none' }}
+              style={{ background: friendIsOnline ? '#22c55e' : '#6b7280', boxShadow: friendIsOnline ? '0 0 5px #22c55e' : 'none' }}
             />
           </div>
           <div className="dchat-header__info">
             <div className="dchat-header__name">{friend.username}</div>
-            <div className="dchat-header__status">{friend.isOnline ? '🟢 Online' : '⚫ Offline'}</div>
+            <div className="dchat-header__status">{friendIsOnline ? '🟢 Online' : '⚫ Offline'}</div>
           </div>
           <button className="dchat-delbtn" onClick={handleDeleteChat} title="Delete chat">🗑</button>
           <button className="dchat-close" onClick={onClose}>✕</button>

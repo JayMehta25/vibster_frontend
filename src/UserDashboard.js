@@ -1,6 +1,7 @@
 ﻿import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DomeGallery from './DomeGallery';
+import DotGrid from './DotGrid';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './supabaseClient';
 import DashboardChat from './DashboardChat';
@@ -1445,15 +1446,36 @@ const UserDashboard = () => {
       </div>
 
       <main style={{ flex: 1, position: 'relative', marginTop: 10 }}>
-        <DomeGallery
-          people={people}
-          onPersonClick={(person) => setSelectedPerson(person)}
-          fit={0.8}
-          minRadius={600}
-          maxVerticalRotationDeg={0}
-          segments={34}
-          dragDampening={2}
-        />
+        {/* DotGrid background — sits behind the dome */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          zIndex: 0, pointerEvents: 'none',
+          overflow: 'hidden',
+        }}>
+          <DotGrid
+            dotSize={5}
+            gap={15}
+            baseColor="#271E37"
+            activeColor="#5227FF"
+            proximity={120}
+            shockRadius={250}
+            shockStrength={5}
+            resistance={750}
+            returnDuration={1.5}
+          />
+        </div>
+        {/* Dome sits above the dot grid */}
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%' }}>
+          <DomeGallery
+            people={people}
+            onPersonClick={(person) => setSelectedPerson(person)}
+            fit={0.8}
+            minRadius={600}
+            maxVerticalRotationDeg={0}
+            segments={34}
+            dragDampening={2}
+          />
+        </div>
       </main>
 
       {/* Profile Modal */}
