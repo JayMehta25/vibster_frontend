@@ -26,6 +26,7 @@ const UserDashboard = () => {
 
   const [dbFriends, setDbFriends] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [showFriendsPanel, setShowFriendsPanel] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [showChatsPanel, setShowChatsPanel] = useState(false);
@@ -133,6 +134,7 @@ const UserDashboard = () => {
     const handleOnlineUsers = (list) => {
       // Use lowercase comparison to avoid case-sensitivity mismatches
       const lowerList = list.map(u => u.toLowerCase());
+      setOnlineUsers(lowerList);
       setDbFriends(prev => prev.map(f => ({
         ...f,
         isOnline: lowerList.includes(f.username.toLowerCase())
@@ -1483,51 +1485,54 @@ const UserDashboard = () => {
         className={`profile-overlay${selectedPerson ? ' open' : ''}`}
         onClick={() => setSelectedPerson(null)}
       >
-        {selectedPerson && (
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="profile-modal__close" onClick={() => setSelectedPerson(null)}>✕</button>
-            <div
-              className="profile-modal__avatar"
-              style={{
-                background: `linear-gradient(135deg, ${(
-                  [
-                    ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
-                    ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
-                    ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
-                  ][(people.indexOf(selectedPerson) === -1 ? 0 : people.indexOf(selectedPerson)) % 8].join(', ')
-                )})`,
-              }}
-            >
-              {selectedPerson.username.slice(0, 2).toUpperCase()}
-              <span
-                className="profile-modal__status"
+        {selectedPerson && (() => {
+          const isLiveOnline = onlineUsers.includes(selectedPerson.username.toLowerCase());
+          return (
+            <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="profile-modal__close" onClick={() => setSelectedPerson(null)}>✕</button>
+              <div
+                className="profile-modal__avatar"
                 style={{
-                  background: selectedPerson.isOnline ? '#22c55e' : '#6b7280',
-                  boxShadow: selectedPerson.isOnline ? '0 0 8px #22c55e' : 'none',
+                  background: `linear-gradient(135deg, ${(
+                    [
+                      ['#00b7ff', '#6c5ce7'], ['#fd79a8', '#e17055'], ['#00cec9', '#0984e3'],
+                      ['#fdcb6e', '#e17055'], ['#a29bfe', '#6c5ce7'], ['#55efc4', '#00b894'],
+                      ['#fab1a0', '#e17055'], ['#74b9ff', '#0984e3'],
+                    ][(people.indexOf(selectedPerson) === -1 ? 0 : people.indexOf(selectedPerson)) % 8].join(', ')
+                  )})`,
                 }}
-              />
-            </div>
-            <div className="profile-modal__name">{selectedPerson.username}</div>
-            <div className="profile-modal__status-text">
-              {selectedPerson.isOnline ? '🟢 Online now' : '⚫ Last seen recently'}
-            </div>
-            <div className="profile-modal__bio">{getPersonBio(selectedPerson.username)}</div>
-            <div className="profile-modal__actions">
-              <button
-                className="profile-action-btn profile-action-btn--call"
-                onClick={() => { setSelectedPerson(null); navigate('/voicecall'); }}
               >
-                📞 Call
-              </button>
-              <button
-                className="profile-action-btn profile-action-btn--text"
-                onClick={() => { handleTextFriend(selectedPerson); setSelectedPerson(null); }}
-              >
-                💬 Text
-              </button>
+                {selectedPerson.username.slice(0, 2).toUpperCase()}
+                <span
+                  className="profile-modal__status"
+                  style={{
+                    background: isLiveOnline ? '#22c55e' : '#6b7280',
+                    boxShadow: isLiveOnline ? '0 0 8px #22c55e' : 'none',
+                  }}
+                />
+              </div>
+              <div className="profile-modal__name">{selectedPerson.username}</div>
+              <div className="profile-modal__status-text">
+                {isLiveOnline ? '🟢 Online now' : '⚫ Last seen recently'}
+              </div>
+              <div className="profile-modal__bio">{getPersonBio(selectedPerson.username)}</div>
+              <div className="profile-modal__actions">
+                <button
+                  className="profile-action-btn profile-action-btn--call"
+                  onClick={() => { setSelectedPerson(null); navigate('/voicecall'); }}
+                >
+                  📞 Call
+                </button>
+                <button
+                  className="profile-action-btn profile-action-btn--text"
+                  onClick={() => { handleTextFriend(selectedPerson); setSelectedPerson(null); }}
+                >
+                  💬 Text
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Dashboard DM Chat Window */}
@@ -1535,6 +1540,7 @@ const UserDashboard = () => {
         <DashboardChat
           user={user}
           friend={activeDmFriend}
+          onlineUsersList={onlineUsers}
           onClose={() => setActiveDmFriend(null)}
           onMessageSent={(recipientUsername, text) => {
             setChatPreviews((prev) => {

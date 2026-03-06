@@ -21,14 +21,19 @@ function formatTime(iso) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function DashboardChat({ user, friend, onClose, onMessageSent, onDeleteChat }) {
+export default function DashboardChat({ user, friend, onlineUsersList, onClose, onMessageSent, onDeleteChat }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState(socket.connected ? 'connected' : 'connecting');
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState(onlineUsersList || []);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Sync internal onlineUsers when prop changes
+  useEffect(() => {
+    if (onlineUsersList) setOnlineUsers(onlineUsersList);
+  }, [onlineUsersList]);
 
   // Consistent username derivation - same priority chain as UserDashboard
   const myUsername = user?.user_metadata?.username
