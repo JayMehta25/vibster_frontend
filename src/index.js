@@ -17,5 +17,5 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
-// Register the service worker for PWA
-serviceWorkerRegistration.register();
+// Unregister the service worker for PWA to avoid cache-first behavior and ensure all devices get latest build.
+serviceWorkerRegistration.unregister();
