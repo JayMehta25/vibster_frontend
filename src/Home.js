@@ -1884,41 +1884,6 @@ export default function Homepage() {
           </div>
         </section>
 
-        {/* ---------- SEO / About Vibester Section ---------- */}
-        <section className="about-vibester-seo" style={{
-          padding: '80px 20px',
-          background: 'linear-gradient(180deg, #0A0F1A 0%, #000408 100%)',
-          width: '100%',
-          textAlign: 'center'
-        }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h2 style={{
-              fontFamily: 'Audiowide, cursive',
-              fontSize: '2.5rem',
-              color: '#00d8ff',
-              marginBottom: '30px',
-              textShadow: '0 0 10px rgba(0, 216, 255, 0.5)'
-            }}>About Vibester</h2>
-            <p style={{
-              fontSize: '1.2rem',
-              lineHeight: '1.8',
-              color: '#a9cce3',
-              fontFamily: 'Quicksand, sans-serif',
-              marginBottom: '20px'
-            }}>
-              <strong>Vibester</strong> is the ultimate social platform designed for the next generation of digital connections. Whether you are looking for <strong>real-time chat</strong>, <strong>secure video calls</strong>, or <strong>AI-powered conversations</strong>, Vibester provides a seamless and futuristic experience.
-            </p>
-            <p style={{
-              fontSize: '1.1rem',
-              lineHeight: '1.8',
-              color: '#a9cce3',
-              fontFamily: 'Quicksand, sans-serif'
-            }}>
-              Our mission is to help you find your tribe instantly. With <strong>interest-based matching</strong> and zero mandatory signups, Vibester makes it easier than ever to meet like-minded people globally. From <strong>anonymous stranger chat</strong> to private rooms with friends, we ensure every "vibe" is protected and engaging. Experience the future of social networking on <strong>Vibester.me</strong>.
-            </p>
-          </div>
-        </section>
-
         {/* ---------- Footer ---------- */}
         <footer className="page-footer" style={{ padding: '10px 0', fontSize: '0.95em', background: '#101c2c', color: '#aaa', borderTop: '1px solid #222', marginTop: 32 }}>
           <div className="container-fluid">
