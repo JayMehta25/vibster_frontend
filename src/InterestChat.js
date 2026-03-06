@@ -12,7 +12,7 @@ import { useAuth } from './contexts/AuthContext';
 // Fallback to localhost if ngrok is down, or use the current host if browsing via ngrok
 
 
-const BACKEND_BASE_URL = "https://vibester-back.onrender.com/";
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://vibester-back.onrender.com/';
 
 const InterestChat = () => {
     const location = useLocation();

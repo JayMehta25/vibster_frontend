@@ -21,7 +21,7 @@ function formatTime(iso) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function DashboardChat({ user, friend, onClose, onMessageSent }) {
+export default function DashboardChat({ user, friend, onClose, onMessageSent, onDeleteChat }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -180,6 +180,32 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
     }
   };
 
+  const handleDeleteChat = async () => {
+    const { isConfirmed } = await import('sweetalert2').then(({ default: Swal }) =>
+      Swal.fire({
+        title: `Delete chat with ${friend.username}?`,
+        text: 'All messages will be permanently deleted.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#e17055',
+        background: 'rgba(8,12,30,0.97)',
+        color: '#fff'
+      })
+    );
+    if (!isConfirmed) return;
+
+    await supabase.from('messages').delete()
+      .eq('sender_username', myUsername).eq('receiver_username', friend.username);
+    await supabase.from('messages').delete()
+      .eq('sender_username', friend.username).eq('receiver_username', myUsername);
+
+    setMessages([]);
+    onDeleteChat?.(friend.username);
+    onClose?.();
+  };
+
   if (!friend?.username) return null;
 
   return (
@@ -264,6 +290,21 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
           transition: all 0.2s;
         }
         .dchat-close:hover { background: rgba(255,255,255,0.1); }
+        .dchat-delbtn {
+          background: none;
+          border: 1px solid rgba(255,118,117,0.25);
+          color: rgba(255,118,117,0.6);
+          width: 28px; height: 28px;
+          border-radius: 50%;
+          font-size: 13px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 0.2s;
+        }
+        .dchat-delbtn:hover { background: rgba(255,118,117,0.15); border-color: rgba(255,118,117,0.6); color: #ff7675; }
 
         .dchat-socket-status {
           padding: 4px 12px;
@@ -391,6 +432,7 @@ export default function DashboardChat({ user, friend, onClose, onMessageSent }) 
             <div className="dchat-header__name">{friend.username}</div>
             <div className="dchat-header__status">{friend.isOnline ? '🟢 Online' : '⚫ Offline'}</div>
           </div>
+          <button className="dchat-delbtn" onClick={handleDeleteChat} title="Delete chat">🗑</button>
           <button className="dchat-close" onClick={onClose}>✕</button>
         </div>
 

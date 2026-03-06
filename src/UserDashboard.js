@@ -346,7 +346,7 @@ const UserDashboard = () => {
   const handleRemoveFriend = async (username) => {
     const result = await Swal.fire({
       title: `Remove ${username}?`,
-      text: 'They will be removed from your connections.',
+      text: 'They will be removed from your connections and all chat history will be deleted.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Remove',
@@ -365,12 +365,16 @@ const UserDashboard = () => {
       .eq('friend_username', username);
 
     // Delete reverse entry (them → me) without needing a profile lookup
-    // Match by friend_username only since we don't have their user_id
     await supabase
       .from('friendships')
       .delete()
       .eq('friend_username', myUsername)
       .neq('user_id', user.id); // safety: not ourselves
+
+    await supabase.from('messages').delete()
+      .eq('sender_username', myUsername).eq('receiver_username', username);
+    await supabase.from('messages').delete()
+      .eq('sender_username', username).eq('receiver_username', myUsername);
 
     // Clear from localStorage favorites so InterestChat "Add Friend" re-enables
     try {
@@ -385,7 +389,35 @@ const UserDashboard = () => {
 
     // Remove from local React state immediately
     setDbFriends(prev => prev.filter(f => f.username !== username));
+    // Remove from chat previews
+    setChatPreviews(prev => prev.filter(p => p.username !== username));
     // Close chat if it was open with this person
+    if (activeDmFriend?.username === username) setActiveDmFriend(null);
+  };
+
+  const handleDeleteChat = async (username, e) => {
+    e.stopPropagation();
+    const result = await Swal.fire({
+      title: `Delete chat with ${username}?`,
+      text: 'All messages will be permanently deleted.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#e17055',
+      background: 'rgba(8,12,30,0.97)',
+      color: '#fff'
+    });
+    if (!result.isConfirmed) return;
+
+    await supabase.from('messages').delete()
+      .eq('sender_username', myUsername).eq('receiver_username', username);
+    await supabase.from('messages').delete()
+      .eq('sender_username', username).eq('receiver_username', myUsername);
+
+    // Remove from local chat previews
+    setChatPreviews(prev => prev.filter(p => p.username !== username));
+    // Close DM window if open with this person
     if (activeDmFriend?.username === username) setActiveDmFriend(null);
   };
 
@@ -393,7 +425,7 @@ const UserDashboard = () => {
     <div
       style={{
         width: '100vw',
-        height: '100vh',
+        height: '100dvh',
         background: 'radial-gradient(circle at top, #050816 0%, #02010a 40%, #000000 100%)',
         display: 'flex',
         flexDirection: 'column',
@@ -873,6 +905,28 @@ const UserDashboard = () => {
           padding: 0 5px;
           flex-shrink: 0;
         }
+        .chat-row__delete {
+          background: none;
+          border: 1px solid rgba(255,118,117,0.35);
+          color: rgba(255,118,117,0.7);
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-left: 4px;
+          transition: all 0.2s;
+        }
+        .chat-row__delete:hover {
+          background: rgba(255,118,117,0.15);
+          border-color: rgba(255,118,117,0.7);
+          color: #ff7675;
+          transform: scale(1.1);
+        }
 
         .chats-nav-btn {
           position: relative;
@@ -1306,6 +1360,11 @@ const UserDashboard = () => {
                       {p.unread > 0 && <span className="chat-row__unread">{p.unread}</span>}
                     </div>
                   </div>
+                  <button
+                    className="chat-row__delete"
+                    onClick={(e) => handleDeleteChat(p.username, e)}
+                    title={`Delete chat with ${p.username}`}
+                  >🗑</button>
                 </div>
               );
             })
@@ -1460,10 +1519,13 @@ const UserDashboard = () => {
               const personObj = people.find((p) => p.username === recipientUsername)
                 || { username: recipientUsername, isOnline: false };
               const newEntry = { ...personObj, lastMessage: text, time: 'just now', unread: 0 };
-              // Move to top, replacing existing entry if present
               const filtered = prev.filter((p) => p.username !== recipientUsername);
               return [newEntry, ...filtered];
             });
+          }}
+          onDeleteChat={(deletedUsername) => {
+            setChatPreviews((prev) => prev.filter((p) => p.username !== deletedUsername));
+            setActiveDmFriend(null);
           }}
         />
       )}
