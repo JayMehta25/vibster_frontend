@@ -1505,8 +1505,8 @@ const UserDashboard = () => {
           <DotGrid
             dotSize={5}
             gap={15}
-            baseColor="#271E37"
-            activeColor="#5227FF"
+            baseColor="#444444"
+            activeColor="#888888"
             proximity={120}
             shockRadius={250}
             shockStrength={5}
