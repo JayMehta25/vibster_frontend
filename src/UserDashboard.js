@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DomeGallery from './DomeGallery';
+import GlobeGallery from './GlobeGallery';
 import DotGrid from './DotGrid';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './supabaseClient';
@@ -32,6 +32,7 @@ const UserDashboard = () => {
   const [showChatsPanel, setShowChatsPanel] = useState(false);
   const [chatPreviews, setChatPreviews] = useState([]);
   const [activeDmFriend, setActiveDmFriend] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
 
   // Standardized username derivation
   const myUsername = useMemo(() => {
@@ -53,6 +54,35 @@ const UserDashboard = () => {
   useEffect(() => { requestsRef.current = requests; }, [requests]);
   useEffect(() => { activeDmFriendRef.current = activeDmFriend; }, [activeDmFriend]);
 
+  // Detect user location
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation not supported');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
+        if (user) {
+          supabase.from('profiles').upsert({
+            id: user.id, // ID is required for upsert to know which record to update/create
+            latitude: loc.lat,
+            longitude: loc.lng,
+            username: myUsername || user.user_metadata?.username // Keep username in sync if possible
+          }).then(({ error }) => {
+            if (error) console.warn('Upsert location error (check if table "profiles" exists):', error);
+          });
+        }
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        // Fallback to IP-based location if needed, but for now we just won't have a starting point
+      }
+    );
+  }, [user]);
+
   // Fetch real friends from Supabase once on mount/user change
   useEffect(() => {
     if (!user) return;
@@ -61,14 +91,32 @@ const UserDashboard = () => {
       .select('friend_username, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) { console.warn('Friendships fetch error:', error); return; }
-        if (data && data.length > 0) {
-          setDbFriends(data.map((f) => ({
-            username: f.friend_username,
-            isOnline: false,
-          })));
+      .then(async ({ data: friendshipData, error: friendshipError }) => {
+        if (friendshipError) { console.warn('Friendships fetch error:', friendshipError); return; }
+
+        if (friendshipData && friendshipData.length > 0) {
+          // Fetch profiles to get locations
+          const usernames = friendshipData.map(f => f.friend_username);
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('username, latitude, longitude')
+            .in('username', usernames);
+
+          if (profileError) { console.warn('Profiles fetch error:', profileError); }
+
+          const friendsWithLoc = friendshipData.map((f) => {
+            const profile = profileData?.find(p => p.username === f.friend_username);
+            return {
+              username: f.friend_username,
+              isOnline: false,
+              latitude: profile?.latitude,
+              longitude: profile?.longitude
+            };
+          });
+          console.log('Friends with location data:', friendsWithLoc.filter(f => f.latitude && f.longitude).length, '/', friendsWithLoc.length);
+          setDbFriends(friendsWithLoc);
         } else {
+          // ... fallback logic (truncated for brevity in TargetContent if possible, but I'll include enough)
           try {
             const key = `vibester:favorites:${user.id}`;
             const raw = localStorage.getItem(key);
@@ -1466,16 +1514,26 @@ const UserDashboard = () => {
             returnDuration={1.5}
           />
         </div>
-        {/* Dome sits above the dot grid */}
+        {/* Globe sits above the dot grid */}
         <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%' }}>
-          <DomeGallery
-            people={people}
-            onPersonClick={(person) => setSelectedPerson(person)}
-            fit={0.8}
-            minRadius={600}
-            maxVerticalRotationDeg={0}
-            segments={34}
-            dragDampening={2}
+          <GlobeGallery
+            friends={people}
+            userLocation={userLocation}
+            onlineUsers={onlineUsers}
+            onUserClick={(clicked) => {
+              if (clicked.isReal) {
+                // Real friend
+                const friendObj = people.find(p => p.username === clicked.name);
+                if (friendObj) setSelectedPerson(friendObj);
+              } else {
+                // Sample user
+                setSelectedPerson({
+                  username: clicked.name,
+                  isOnline: clicked.isOnline,
+                  isSample: true
+                });
+              }
+            }}
           />
         </div>
       </main>

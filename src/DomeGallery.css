@@ -46,6 +46,12 @@ main.sphere-main {
 .sphere {
   transform: translateZ(calc(var(--radius) * -1));
   will-change: transform;
+  /* Wireframe globe effect */
+  background:
+    radial-gradient(circle at center, transparent 95%, rgba(128, 128, 128, 0.05) 100%),
+    repeating-linear-gradient(rgba(128, 128, 128, 0.03) 0, rgba(128, 128, 128, 0.03) 1px, transparent 1px, transparent var(--item-height)),
+    repeating-linear-gradient(90deg, rgba(128, 128, 128, 0.03) 0, rgba(128, 128, 128, 0.03) 1px, transparent 1px, transparent var(--item-width));
+  border-radius: 50%;
 }
 
 .overlay,
@@ -203,7 +209,13 @@ body.dg-scroll-lock {
 
 .item__image--empty {
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
+  border: 1px solid rgba(128, 128, 128, 0.08);
+  background: radial-gradient(circle at center, rgba(128, 128, 128, 0.15) 0%, transparent 15%);
+  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+  margin: auto;
 }
 
 .person-card {
