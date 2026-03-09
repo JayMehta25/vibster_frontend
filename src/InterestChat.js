@@ -72,6 +72,7 @@ const InterestChat = () => {
     const [compatibilityLoading, setCompatibilityLoading] = useState(false);
     const [showVideo, setShowVideo] = useState(true); // Video always visible by default
     const [geminiStatus, setGeminiStatus] = useState('checking'); // 'checking', 'connected', 'disconnected'
+    const [requestSent, setRequestSent] = useState(false);
 
     const otherUsername = useMemo(() => {
         const other = messages.find(
@@ -97,6 +98,21 @@ const InterestChat = () => {
             return false;
         }
     }, [friendStorageKey, otherUsername]);
+
+    // Socket registration for private events (like friend requests)
+    useEffect(() => {
+        if (!username) return;
+        const registerSocket = () => {
+            console.log('[InterestChat] Registering socket for:', username);
+            socket.emit('register', username.toLowerCase());
+        };
+        if (socket.connected) {
+            registerSocket();
+        } else {
+            socket.on('connect', registerSocket);
+        }
+        return () => socket.off('connect', registerSocket);
+    }, [username]);
 
     const handleAddFriend = async () => {
         if (!otherUsername) {
@@ -185,15 +201,16 @@ const InterestChat = () => {
 
             // Notify the other user via socket for real-time request alert
             socket.emit('sendFriendRequest', { to: otherUsername, from: username });
+            setRequestSent(true);
         } catch (dbErr) {
             console.warn('Could not save friend to DB:', dbErr);
         }
 
         await Swal.fire({
-            title: 'Saved!',
-            text: `${otherUsername} was added to your Dashboard.`,
+            title: 'Request Sent!',
+            text: `A friend request was sent to ${otherUsername}.`,
             icon: 'success',
-            timer: 1300,
+            timer: 1500,
             showConfirmButton: false,
             background: 'rgba(10, 20, 30, 0.95)',
             color: '#fff',
@@ -1037,9 +1054,9 @@ const InterestChat = () => {
                                                     </>
                                                     <button
                                                         onClick={handleAddFriend}
-                                                        disabled={!otherUsername || (user && isAlreadySaved)}
+                                                        disabled={!otherUsername || (user && isAlreadySaved) || requestSent}
                                                         style={{
-                                                            background: (user && isAlreadySaved) ? 'rgba(255,255,255,0.10)' : 'linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(255, 79, 216, 0.95))',
+                                                            background: (user && isAlreadySaved) || requestSent ? 'rgba(255,255,255,0.10)' : 'linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(255, 79, 216, 0.95))',
                                                             color: '#fff',
                                                             border: 'none',
                                                             borderRadius: 16,
@@ -1047,17 +1064,17 @@ const InterestChat = () => {
                                                             fontWeight: 800,
                                                             fontSize: 14,
                                                             boxShadow: '0 0 14px rgba(124, 58, 237, 0.22), 0 0 14px rgba(255, 79, 216, 0.18)',
-                                                            cursor: (!otherUsername || (user && isAlreadySaved)) ? 'not-allowed' : 'pointer',
+                                                            cursor: (!otherUsername || (user && isAlreadySaved) || requestSent) ? 'not-allowed' : 'pointer',
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             gap: 6,
                                                             height: 40,
-                                                            opacity: (!otherUsername || (user && isAlreadySaved)) ? 0.65 : 1,
+                                                            opacity: (!otherUsername || (user && isAlreadySaved) || requestSent) ? 0.65 : 1,
                                                         }}
-                                                        title={otherUsername ? (user ? (isAlreadySaved ? 'Already saved' : `Add ${otherUsername}`) : 'Sign up to add friends') : 'Send a message first'}
+                                                        title={requestSent ? 'Request pending' : (otherUsername ? (user ? (isAlreadySaved ? 'Already saved' : `Add ${otherUsername}`) : 'Sign up to add friends') : 'Send a message first')}
                                                     >
-                                                        <span role="img" aria-label="add-friend">➕</span>{' '}
-                                                        <span className="d-none d-sm-inline">{(user && isAlreadySaved) ? 'Saved' : 'Add Friend'}</span>
+                                                        <span role="img" aria-label="add-friend">{requestSent ? '⏳' : '➕'}</span>{' '}
+                                                        <span className="d-none d-sm-inline">{(user && isAlreadySaved) ? 'Saved' : (requestSent ? 'Requested' : 'Add Friend')}</span>
                                                     </button>
                                                 </>
                                             )}

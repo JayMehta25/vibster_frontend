@@ -202,11 +202,11 @@ const UserDashboard = () => {
       if (!dbFriendsRef.current.some(f => f.username === from) && !requestsRef.current.some(r => r.username === from)) {
         setRequests(prev => [...prev, { username: from }]);
         Swal.fire({
-          title: 'New Friend Request',
-          text: `${from} added you! Check your connections.`,
+          title: 'Pending Request',
+          text: `${from} added you! Check the Pending section.`,
           toast: true,
           position: 'top-end',
-          timer: 4000,
+          timer: 5000,
           showConfirmButton: false,
           background: 'rgba(50, 10, 80, 0.95)',
           color: '#fff'
@@ -1433,7 +1433,7 @@ const UserDashboard = () => {
         <div className="friends-panel__list">
           {requests.length > 0 && (
             <div className="friends-section">
-              <div className="friends-section-title" style={{ fontSize: '10px', color: '#00b7ff', fontWeight: 800, padding: '10px 5px', opacity: 0.8 }}>REQUESTS ({requests.length})</div>
+              <div className="friends-section-title" style={{ fontSize: '10px', color: '#ff79c6', fontWeight: 800, padding: '10px 5px', opacity: 0.9, letterSpacing: '1px' }}>PENDING ({requests.length})</div>
               {requests.map((req) => (
                 <div key={req.username} className="friend-card" style={{ border: '1px solid rgba(255,121,198,0.3)', background: 'rgba(255,121,198,0.05)' }}>
                   <div className="friend-card__avatar" style={{ background: 'linear-gradient(135deg, #fd79a8, #e17055)' }}>
