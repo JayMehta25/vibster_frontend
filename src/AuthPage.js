@@ -284,13 +284,22 @@ const AuthPage = () => {
                     </>
                 ) : (
                     <>
+                        {/* Logo */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                            <img 
+                                src="/appicon.png" 
+                                alt="Vibester Logo" 
+                                style={{ width: '80px', height: '80px', objectFit: 'contain', filter: 'drop-shadow(0 0 15px rgba(0, 216, 255, 0.4))' }} 
+                            />
+                        </div>
+
                         {/* Title */}
                         <h1 style={{
                             color: '#00d8ff',
                             textAlign: 'center',
                             marginBottom: '30px',
                             fontFamily: 'Orbitron, sans-serif',
-                            fontSize: '2.5rem',
+                            fontSize: '2.2rem',
                             textShadow: '0 0 20px rgba(0, 216, 255, 0.5)'
                         }}>
                             {isLogin ? 'Welcome Back' : 'Join Vibester'}

@@ -56,7 +56,7 @@ const InterestChat = () => {
     const [icebreaker, setIcebreaker] = useState(null);
     const [icebreakerLoading, setIcebreakerLoading] = useState(false);
     const [showIcebreaker, setShowIcebreaker] = useState(false);
-    const [showAIDropdown, setShowAIDropdown] = useState(false);
+    const [showAIPopup, setShowAIPopup] = useState(false);
     const [loadingType, setLoadingType] = useState('icebreaker');
     const [showBot, setShowBot] = useState(false);
     const [botMessages, setBotMessages] = useState([]);
@@ -217,70 +217,6 @@ const InterestChat = () => {
         });
     };
 
-    // Listen for friend requests from the current chat partner
-    useEffect(() => {
-        if (!otherUsername) return;
-
-        const handleIncomingRequest = async ({ from }) => {
-            // Only react if the request is from our current chat partner
-            if (from.toLowerCase() !== otherUsername.toLowerCase()) return;
-
-            const result = await Swal.fire({
-                title: `👋 ${from} added you!`,
-                text: 'They want to connect on the Dashboard. Accept?',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: '✅ Accept',
-                cancelButtonText: 'Later',
-                confirmButtonColor: '#00d8ff',
-                cancelButtonColor: 'rgba(255,255,255,0.15)',
-                background: 'rgba(10, 20, 30, 0.97)',
-                color: '#fff',
-            });
-
-            if (result.isConfirmed && user) {
-                try {
-                    const { supabase } = await import('./supabaseClient');
-                    // Save mutual friendship to Supabase
-                    await supabase.from('friendships').upsert(
-                        {
-                            user_id: user.id,
-                            friend_username: from,
-                            added_from: 'interest-chat-accept',
-                        },
-                        { onConflict: 'user_id,friend_username' }
-                    );
-
-                    // Also save to localStorage for quick access
-                    if (friendStorageKey) {
-                        try {
-                            const raw = localStorage.getItem(friendStorageKey) || '[]';
-                            const list = JSON.parse(raw);
-                            if (!list.some(x => x.username === from)) {
-                                list.push({ username: from, source: 'interest-chat-accept', addedAt: new Date().toISOString() });
-                                localStorage.setItem(friendStorageKey, JSON.stringify(list));
-                            }
-                        } catch { /* ignore */ }
-                    }
-
-                    Swal.fire({
-                        title: '🎉 Connected!',
-                        text: `You and ${from} are now linked on your Dashboard.`,
-                        icon: 'success',
-                        timer: 1800,
-                        showConfirmButton: false,
-                        background: 'rgba(10, 20, 30, 0.97)',
-                        color: '#fff',
-                    });
-                } catch (err) {
-                    console.warn('[InterestChat] Failed to accept friend request:', err);
-                }
-            }
-        };
-
-        socket.on('incomingFriendRequest', handleIncomingRequest);
-        return () => socket.off('incomingFriendRequest', handleIncomingRequest);
-    }, [otherUsername, user, friendStorageKey]);
 
 
     useEffect(() => {
@@ -373,6 +309,7 @@ const InterestChat = () => {
         }
     }, [isSearching, isMatchFound]);
 
+    // Unified Socket Registration & Friend Request Listener
     useEffect(() => {
         if (!username) return;
 
@@ -381,16 +318,68 @@ const InterestChat = () => {
             socket.emit('register', username.toLowerCase());
         };
 
-        // Register now and on every reconnect (in case backend restarts)
+        const handleIncomingFriendRequest = async ({ from }) => {
+            console.log('[InterestChat] Received friend request from:', from);
+            const result = await Swal.fire({
+                title: `👋 ${from} added you!`,
+                text: 'They want to connect on your Dashboard. Accept?',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '✅ Accept',
+                cancelButtonText: 'Later',
+                confirmButtonColor: '#00d8ff',
+                background: 'rgba(10, 20, 30, 0.97)',
+                color: '#fff',
+                toast: false,
+                position: 'center',
+            });
+
+            if (result.isConfirmed && user) {
+                try {
+                    const { supabase } = await import('./supabaseClient');
+                    await supabase.from('friendships').upsert(
+                        { user_id: user.id, friend_username: from, added_from: 'interest-chat-accept' },
+                        { onConflict: 'user_id,friend_username' }
+                    );
+                    if (friendStorageKey) {
+                        try {
+                            const raw = localStorage.getItem(friendStorageKey) || '[]';
+                            const list = JSON.parse(raw);
+                            if (!list.some(x => x.username === from)) {
+                                list.push({ username: from, source: 'interest-chat-accept', addedAt: new Date().toISOString() });
+                                localStorage.setItem(friendStorageKey, JSON.stringify(list));
+                            }
+                        } catch { /* ignore */ }
+                    }
+                    Swal.fire({
+                        title: '🎉 Connected!',
+                        text: `You and ${from} are now linked on your Dashboard.`,
+                        icon: 'success',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        background: 'rgba(10, 20, 30, 0.97)',
+                        color: '#fff',
+                    });
+                } catch (err) {
+                    console.warn('[InterestChat] Failed to save accepted friend:', err);
+                }
+            }
+        };
+
         if (socket.connected) {
             doRegister();
         } else {
             socket.connect();
         }
-        socket.on('connect', doRegister);
 
-        return () => socket.off('connect', doRegister);
-    }, [username]);
+        socket.on('connect', doRegister);
+        socket.on('incomingFriendRequest', handleIncomingFriendRequest);
+
+        return () => {
+            socket.off('connect', doRegister);
+            socket.off('incomingFriendRequest', handleIncomingFriendRequest);
+        };
+    }, [username, user, friendStorageKey]);
 
     useEffect(() => {
         if (!username || !interests || interests.length === 0) {
@@ -399,6 +388,18 @@ const InterestChat = () => {
         }
 
         searchStartTimestamp.current = Date.now();
+
+        // Ensure profile exists so others can find our username
+        if (user) {
+            import('./supabaseClient').then(({ supabase }) => {
+                supabase.from('profiles').upsert({
+                    id: user.id,
+                    username: username
+                }).then(({ error }) => {
+                    if (error) console.warn('Profile sync error:', error);
+                });
+            });
+        }
 
         console.log('🔍 Debug: Joining interest room with:', { username, interests });
         socket.emit('joinInterestRoom', { username, interests });
@@ -425,7 +426,7 @@ const InterestChat = () => {
                     setIsMatchFound(true);
                     setTimeout(() => {
                         setIsSearching(false);
-                    }, 2000); // Let popup show for 2 seconds
+                    }, 2000);
                 };
 
                 if (remainingTime > 0) {
@@ -440,61 +441,10 @@ const InterestChat = () => {
         socket.on('interestRoomUserCount', userCountHandler);
         socket.on('interestRoomAssigned', roomAssignedHandler);
 
-        // Friend request handler — shows Accept/Decline dialog
-        const handleIncomingFriendRequest = async ({ from }) => {
-            const result = await Swal.fire({
-                title: `👋 ${from} added you!`,
-                text: 'They want to connect on your Dashboard. Accept?',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: '✅ Accept',
-                cancelButtonText: 'Later',
-                confirmButtonColor: '#00d8ff',
-                background: 'rgba(10, 20, 30, 0.97)',
-                color: '#fff',
-                toast: false,
-                position: 'center',
-            });
-
-            if (result.isConfirmed && user) {
-                try {
-                    const { supabase } = await import('./supabaseClient');
-                    await supabase.from('friendships').upsert(
-                        { user_id: user.id, friend_username: from, added_from: 'interest-chat-accept' },
-                        { onConflict: 'user_id,friend_username' }
-                    );
-                    // Save to localStorage too
-                    if (friendStorageKey) {
-                        try {
-                            const raw = localStorage.getItem(friendStorageKey) || '[]';
-                            const list = JSON.parse(raw);
-                            if (!list.some(x => x.username === from)) {
-                                list.push({ username: from, source: 'interest-chat-accept', addedAt: new Date().toISOString() });
-                                localStorage.setItem(friendStorageKey, JSON.stringify(list));
-                            }
-                        } catch { /* ignore */ }
-                    }
-                    Swal.fire({
-                        title: '🎉 Connected!',
-                        text: `You and ${from} are now linked on your Dashboard.`,
-                        icon: 'success',
-                        timer: 1800,
-                        showConfirmButton: false,
-                        background: 'rgba(10, 20, 30, 0.97)',
-                        color: '#fff',
-                    });
-                } catch (err) {
-                    console.warn('[InterestChat] Failed to save accepted friend:', err);
-                }
-            }
-        };
-        socket.on('incomingFriendRequest', handleIncomingFriendRequest);
-
         return () => {
             socket.off('receiveInterestMessage', messageHandler);
             socket.off('interestRoomUserCount', userCountHandler);
             socket.off('interestRoomAssigned', roomAssignedHandler);
-            socket.off('incomingFriendRequest', handleIncomingFriendRequest);
             const isReturningFromCall = typeof window !== 'undefined' && (
                 window.sessionStorage.getItem('returningFromVideoCall') === 'true' ||
                 window.sessionStorage.getItem('returningFromVoiceCall') === 'true'
@@ -503,7 +453,7 @@ const InterestChat = () => {
                 socket.emit('leaveInterestRoom', { username, roomName: assignedRoom });
             }
         };
-    }, [username, interests, navigate, isSearching, isMatchFound, assignedRoom]);
+    }, [username, interests, navigate, isSearching, isMatchFound, assignedRoom, user]);
 
 
     // Custom smooth scroll animation for better smoothness
@@ -940,12 +890,17 @@ const InterestChat = () => {
                                     }}
                                 >
                                     <div className="d-flex justify-content-between align-items-start w-100">
-                                        {/* Left Section: AI & Online Count */}
+                                        {/* Left Section: Logo, AI & Online Count */}
                                         <div className="d-flex flex-column align-items-start gap-2">
                                             <div className="d-flex align-items-center gap-3">
-                                                <div style={{ position: 'relative' }}>
+                                                <img 
+                                                    src="/appicon.png" 
+                                                    alt="Vibester" 
+                                                    style={{ width: 32, height: 32, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(0,183,255,0.4))' }} 
+                                                />
+                                                <div style={{ position: 'relative', display: 'flex', gap: '10px' }}>
                                                     <button
-                                                        onClick={() => setShowAIDropdown(!showAIDropdown)}
+                                                        onClick={() => setShowAIPopup(true)}
                                                         style={{
                                                             background: 'linear-gradient(90deg, #00b7ff 0%, #2c5364 100%)',
                                                             color: '#fff',
@@ -953,67 +908,33 @@ const InterestChat = () => {
                                                             borderRadius: 16,
                                                             padding: '0.4rem 1.2rem',
                                                             fontWeight: 700,
-                                                            fontSize: 16,
+                                                            fontSize: 14,
                                                             boxShadow: '0 0 12px #00b7ff33',
                                                             cursor: 'pointer',
                                                             letterSpacing: 0.5,
-                                                            height: 40,
+                                                            height: 36,
                                                             transition: 'all 0.2s',
                                                         }}
                                                     >
-                                                        AI <span role="img" aria-label="star">✨</span>
+                                                        AI ✨
                                                     </button>
-                                                    {showAIDropdown && (
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            top: '110%',
-                                                            left: 0,
-                                                            background: '#fff',
-                                                            borderRadius: 12,
-                                                            boxShadow: '0 4px 24px #00b7ff33',
-                                                            minWidth: 200,
-                                                            zIndex: 100,
-                                                            padding: '0.5rem 0',
-                                                        }}>
-                                                            <div
-                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                                onClick={() => { setShowAIDropdown(false); fetchIcebreaker(); }}
-                                                            >
-                                                                Get an icebreaker
-                                                            </div>
-                                                            <div
-                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                                onClick={() => { setShowAIDropdown(false); setShowChatHistory(true); }}
-                                                            >
-                                                                Show chat history
-                                                            </div>
-                                                            <div
-                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027', borderBottom: '1px solid #e0e0e0' }}
-                                                                onClick={async () => {
-                                                                    setShowAIDropdown(false);
-                                                                    setShowFlanChat(true);
-                                                                    setFlanMessages([]);
-                                                                    setFlanLoading(true);
-                                                                    try {
-                                                                        const chat_history = messages.map(m => m.message);
-                                                                        const res = await axios.post(FLAN_CHAT_URL, { prompt: `Chat history: \n${chat_history.join('\n')}\nYou are the user's assistant. Greet the user and let them know you are here to help with the conversation.` });
-                                                                        setFlanMessages([{ sender: 'flan', text: res.data.response || "I'm here to assist you, carry your conversation or ask me anything!" }]);
-                                                                    } catch (err) {
-                                                                        setFlanMessages([{ sender: 'flan', text: "I'm here to assist you, carry your conversation or ask me anything!" }]);
-                                                                    }
-                                                                    setFlanLoading(false);
-                                                                }}
-                                                            >
-                                                                Chat with your assistant
-                                                            </div>
-                                                            <div
-                                                                style={{ padding: '0.7rem 1.2rem', cursor: 'pointer', fontWeight: 600, color: '#0f2027' }}
-                                                                onClick={() => { setShowAIDropdown(false); fetchCompatibility(); }}
-                                                            >
-                                                                Get compatibility meter
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    <button
+                                                        onClick={() => setShowChatHistory(true)}
+                                                        style={{
+                                                            background: 'rgba(255, 255, 255, 0.1)',
+                                                            color: '#fff',
+                                                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                            borderRadius: 16,
+                                                            padding: '0.4rem 1rem',
+                                                            fontWeight: 600,
+                                                            fontSize: 14,
+                                                            cursor: 'pointer',
+                                                            height: 36,
+                                                            transition: 'all 0.2s',
+                                                        }}
+                                                    >
+                                                        History 📜
+                                                    </button>
                                                 </div>
                                                 <div
                                                     className="chat-info text-nowrap"
@@ -1448,6 +1369,70 @@ const InterestChat = () => {
                             }}
                         >
                             Close
+                        </button>
+                    </div>
+                </div>
+            )}
+            
+            {showAIPopup && (
+                <div className="ai-premium-overlay" onClick={() => setShowAIPopup(false)}>
+                    <div className="ai-premium-content" onClick={e => e.stopPropagation()}>
+                        <button className="ai-premium-close" onClick={() => setShowAIPopup(false)}>✕</button>
+                        
+                        <div className="ai-premium-header">
+                            <h2>UNLOCK PREMIUM AI</h2>
+                            <p>Supercharge your networking game with Vibester AI tools</p>
+                        </div>
+                        
+                        <div className="ai-premium-grid">
+                            <div className="ai-premium-card icebreaker" onClick={() => {
+                                setShowAIPopup(false);
+                                fetchIcebreaker();
+                            }}>
+                                <div className="card-lock">👑 Premium</div>
+                                <div className="card-icon">🧊</div>
+                                <h3 className="card-title">AI Icebreakers</h3>
+                                <p className="card-desc">Instantly generate the perfect conversation starters based on shared interests.</p>
+                            </div>
+                            
+                            <div className="ai-premium-card wingman" onClick={() => {
+                                setShowAIPopup(false);
+                                setShowFlanChat(true);
+                                setFlanMessages([]);
+                                setFlanLoading(true);
+                                axios.post(FLAN_CHAT_URL, { prompt: "Chat history: \n" + messages.map(m => m.message).join('\n') + "\nYou are the user's assistant. Greet the user and let them know you are here to help." })
+                                    .then(res => setFlanMessages([{ sender: 'flan', text: res.data.response || "I'm here to assist you!" }]))
+                                    .catch(err => setFlanMessages([{ sender: 'flan', text: "I'm here to assist you, carry your conversation or ask me anything!" }]))
+                                    .finally(() => setFlanLoading(false));
+                            }}>
+                                <div className="card-lock">👑 Premium</div>
+                                <div className="card-icon">🤖</div>
+                                <h3 className="card-title">Aura Wingman</h3>
+                                <p className="card-desc">Your personal AI sidekick to help carry the conversation and suggest responses.</p>
+                            </div>
+                            
+                            <div className="ai-premium-card compatibility" onClick={() => {
+                                setShowAIPopup(false);
+                                fetchCompatibility();
+                            }}>
+                                <div className="card-lock">👑 Premium</div>
+                                <div className="card-icon">⚡</div>
+                                <h3 className="card-title">Compatibility Meter</h3>
+                                <p className="card-desc">Advanced NLP analysis to calculate exactly how well your vibes match.</p>
+                            </div>
+                        </div>
+                        
+                        <button className="ai-subscribe-btn" onClick={() => {
+                            Swal.fire({
+                                title: 'Coming Soon!',
+                                text: 'Premium AI features are rolling out shortly. Stay tuned!',
+                                icon: 'info',
+                                background: 'rgba(15, 22, 38, 0.95)',
+                                color: '#fff',
+                                confirmButtonColor: '#ff007f'
+                            });
+                        }}>
+                            Get Full Access Now
                         </button>
                     </div>
                 </div>

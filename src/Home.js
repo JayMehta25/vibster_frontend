@@ -666,15 +666,26 @@ export default function Homepage() {
           .navbar .container-fluid {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
             padding: 0;
+            position: relative;
+            min-height: 50px;
           }
 
           .navbar-left {
+            position: absolute;
+            left: 30px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 12px; /* Adjusted gap */
+          }
+          
+          .navbar-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px #00d8ff);
           }
           
           .navbar-title {
@@ -685,7 +696,7 @@ export default function Homepage() {
             font-weight: 700;
             letter-spacing: 2px;
             white-space: nowrap;
-            margin-right:70px;
+            min-width: 160px;
           }
           .cursor {
             display: inline-block;
@@ -699,8 +710,9 @@ export default function Homepage() {
           .navbar-links {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 20px;
             flex-wrap: nowrap;
+            margin: 0 auto;
           }
 
           .nav-button {
@@ -1697,6 +1709,7 @@ export default function Homepage() {
         <nav className="navbar navbar-expand-lg">
           <div className="container-fluid">
             <div className="navbar-left">
+              <img src="/appicon.png" alt="Vibester Logo" className="navbar-logo" />
               <TypewriterTitle />
               <OnlineStatus isOnline={isOnline} onlineCount={globalOnlineCount} />
               {/* Mobile: Hamburger Menu */}

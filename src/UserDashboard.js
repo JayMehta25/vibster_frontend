@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlobeGallery from './GlobeGallery';
 import DotGrid from './DotGrid';
@@ -92,6 +92,7 @@ const UserDashboard = () => {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(async ({ data: friendshipData, error: friendshipError }) => {
+        console.log('[Dashboard] Friendships fetch result:', { count: friendshipData?.length, error: friendshipError });
         if (friendshipError) { console.warn('Friendships fetch error:', friendshipError); return; }
 
         if (friendshipData && friendshipData.length > 0) {
@@ -141,20 +142,27 @@ const UserDashboard = () => {
     supabase
       .from('friendships')
       .select('user_id, created_at')
-      .eq('friend_username', myUsername)
+      .ilike('friend_username', myUsername)
       .then(async ({ data, error }) => {
+        console.log('[Dashboard] Pending requests fetch result for:', myUsername, { count: data?.length, error });
         if (error) return;
         if (data && data.length > 0) {
           const reqs = [];
           for (const r of data) {
             const { data: profile } = await supabase
               .from('profiles').select('username').eq('id', r.user_id).single();
-            // Only add as a request if NOT already a mutual friend
-            if (profile && !dbFriends.some(f => f.username === profile.username)) {
-              reqs.push({ username: profile.username, id: r.user_id });
+
+            const reqUsername = profile?.username || `User-${r.user_id.slice(0, 4)}`;
+            // Only add as a request if NOT already a mutual friend (case-insensitive check)
+            const alreadyFriend = dbFriends.some(f => (f.username || '').toLowerCase() === reqUsername.toLowerCase());
+            if (!alreadyFriend) {
+              reqs.push({ username: reqUsername, id: r.user_id });
             }
           }
+          console.log('[Dashboard] Final requests list:', reqs);
           setRequests(reqs);
+        } else {
+          setRequests([]);
         }
       });
   }, [user, myUsername, dbFriends]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -198,19 +206,34 @@ const UserDashboard = () => {
     socket.emit('getOnlineUsers');
 
     const handleIncomingRequest = ({ from }) => {
-      // Only add if not already a friend or already in requests
-      if (!dbFriendsRef.current.some(f => f.username === from) && !requestsRef.current.some(r => r.username === from)) {
+      const fromLower = from.toLowerCase();
+      // Only add if not already a friend or already in requests (case-insensitive)
+      const isExistingFriend = dbFriendsRef.current.some(f => f.username.toLowerCase() === fromLower);
+      const isExistingRequest = requestsRef.current.some(r => r.username.toLowerCase() === fromLower);
+
+      if (!isExistingFriend && !isExistingRequest) {
         setRequests(prev => [...prev, { username: from }]);
         Swal.fire({
           title: 'Pending Request',
-          text: `${from} added you! Check the Pending section.`,
-          toast: true,
-          position: 'top-end',
-          timer: 5000,
-          showConfirmButton: false,
-          background: 'rgba(50, 10, 80, 0.95)',
-          color: '#fff'
+          text: `${from} added you! View in Friends Panel?`,
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'View',
+          cancelButtonText: 'Later',
+          background: 'rgba(8,12,30,0.95)',
+          color: '#fff',
+          confirmButtonColor: '#00b7ff'
+        }).then((res) => {
+          if (res.isConfirmed) {
+            setShowFriendsPanel(true);
+            setTimeout(() => {
+              const el = document.getElementById('pending-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+          }
         });
+      } else {
+        console.log('[Dashboard] Skipping incoming request (redundant):', from, { isExistingFriend, isExistingRequest });
       }
     };
 
@@ -1290,9 +1313,9 @@ const UserDashboard = () => {
       {/* Minimal Logo Pill — top left */}
       <div className="logo-pill">
         <img
-          src="/logo_vibester.png"
+          src="/appicon.png"
           alt="Vibester"
-          style={{ width: 26, height: 26, borderRadius: '50%', filter: 'drop-shadow(0 0 6px rgba(0,183,255,0.5))' }}
+          style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(0,183,255,0.5))' }}
         />
         <span className="logo-pill__name">Vibester</span>
       </div>
@@ -1314,6 +1337,7 @@ const UserDashboard = () => {
 
         {/* Friends */}
         <button className="dock-btn" onClick={() => setShowFriendsPanel(true)} title="Friends">
+          {requests.length > 0 && <span className="dock-badge dock-badge--pending">{requests.length}</span>}
           <span className="dock-btn__icon">👥</span>
           <span className="dock-btn__label">{people.length} Friends</span>
         </button>
@@ -1432,8 +1456,8 @@ const UserDashboard = () => {
         </div>
         <div className="friends-panel__list">
           {requests.length > 0 && (
-            <div className="friends-section">
-              <div className="friends-section-title" style={{ fontSize: '10px', color: '#ff79c6', fontWeight: 800, padding: '10px 5px', opacity: 0.9, letterSpacing: '1px' }}>PENDING ({requests.length})</div>
+            <div className="friends-section" id="pending-section">
+              <div className="friends-section-title" style={{ fontSize: '10px', color: '#ff79c6', fontWeight: 800, padding: '10px 5px', opacity: 0.9, letterSpacing: '1px', borderBottom: '1px solid rgba(255, 121, 198, 0.2)', marginBottom: '8px' }}>PENDING ({requests.length})</div>
               {requests.map((req) => (
                 <div key={req.username} className="friend-card" style={{ border: '1px solid rgba(255,121,198,0.3)', background: 'rgba(255,121,198,0.05)' }}>
                   <div className="friend-card__avatar" style={{ background: 'linear-gradient(135deg, #fd79a8, #e17055)' }}>
