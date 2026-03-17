@@ -1734,7 +1734,7 @@ export default function Homepage() {
                   className="nav-button signup-button"
                   onClick={() => navigate("/userdashboard")}
                 >
-                  Dashboard
+                  Vibe Hub
                 </button>
               ) : (
                 <button
@@ -1761,7 +1761,7 @@ export default function Homepage() {
               className="mobile-menu-item signup"
               onClick={() => { navigate("/userdashboard"); setMobileMenuOpen(false); }}
             >
-              Dashboard
+              Vibe Hub
             </button>
           ) : (
             <button
